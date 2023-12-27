@@ -2,10 +2,25 @@ import 'dart:io';
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:smart_reclam/my_widgets/constat_map.dart';
 
-class ConstatDeclaration extends StatelessWidget {
+class ConstatDeclaration extends StatefulWidget {
   final String status;
   const ConstatDeclaration({super.key, required this.status});
+
+  @override
+  State<ConstatDeclaration> createState() => _ConstatDeclarationState();
+}
+
+class _ConstatDeclarationState extends State<ConstatDeclaration> {
+  late GoogleMapController mapController;
+
+  final LatLng _center = const LatLng(45.521563, -122.677433);
+
+  void _onMapCreated(GoogleMapController controller) {
+    mapController = controller;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -54,17 +69,17 @@ class ConstatDeclaration extends StatelessWidget {
                   SizedBox(
                     width: 4,
                   ),
-                  if (status == 'Ouvert')
+                  if (widget.status == 'Ouvert')
                     Badge(
                       label: Text('Ouvert'),
                       backgroundColor: Colors.amber[800],
                     )
-                  else if (status == 'Traité')
+                  else if (widget.status == 'Traité')
                     Badge(
                       label: Text('Traité'),
                       backgroundColor: Colors.green[800],
                     )
-                  else if (status == 'Clôturé')
+                  else if (widget.status == 'Clôturé')
                     Badge(
                       label: Text('Clôturé'),
                       backgroundColor: Colors.grey[800],
@@ -101,9 +116,27 @@ class ConstatDeclaration extends StatelessWidget {
               SizedBox(
                 height: 4,
               ),
-              Text(
-                '2, rue Hassan 2, Maarif, Casablanca',
-                style: Theme.of(context).textTheme.bodyMedium,
+              Row(
+                children: [
+                  Text(
+                    '2, rue Hassan 2, Maarif, Casablanca',
+                    style: Theme.of(context).textTheme.bodyMedium,
+                  ),
+                  SizedBox(
+                    width: 4,
+                  ),
+                  TextButton(
+                      style: TextButton.styleFrom(
+                        primary: Theme.of(context).primaryColor,
+                      ),
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => ConstatMap()),
+                        );
+                      },
+                      child: Text('Voir sur la carte'))
+                ],
               ),
               SizedBox(
                 height: 12,
@@ -177,10 +210,6 @@ class ConstatDeclaration extends StatelessWidget {
                 height: 12,
               ),
               Image(image: AssetImage('assets/images/photo1.jpeg')),
-              SizedBox(
-                height: 12,
-              ),
-              Image(image: AssetImage('assets/images/photo1.jpeg')),
             ],
           ),
         ),
@@ -208,7 +237,7 @@ class _FormExampleState extends State<FormExample> {
             color: Colors.white,
             borderRadius: BorderRadius.only(
                 topLeft: Radius.circular(20), topRight: Radius.circular(20))),
-                clipBehavior: Clip.hardEdge,
+        clipBehavior: Clip.hardEdge,
         child: Padding(
           padding: const EdgeInsets.all(16.0),
           child: Column(
@@ -282,8 +311,8 @@ class _FormExampleState extends State<FormExample> {
                 ],
               ),
               SizedBox(
-                    height: 8,
-                  ),
+                height: 8,
+              ),
               ElevatedButton.icon(
                 onPressed: () {
                   Navigator.pop(context);

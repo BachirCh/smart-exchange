@@ -56,11 +56,11 @@ class Countdown extends AnimatedWidget {
     String timerText =
         '${clockTimer.inHours.remainder(24).toString()}h${clockTimer.inMinutes.remainder(60).toString()}min${clockTimer.inSeconds.remainder(60).toString().padLeft(2, '0')}s';
 
-    print('animation.value  ${animation.value} ');
-    print('inHours ${clockTimer.inHours.toString()}');
-    print('inMinutes ${clockTimer.inMinutes.toString()}');
-    print('inSeconds ${clockTimer.inSeconds.toString()}');
-    print('inSeconds.remainder ${clockTimer.inSeconds.remainder(60).toString()}');
+    // print('animation.value  ${animation.value} ');
+    // print('inHours ${clockTimer.inHours.toString()}');
+    // print('inMinutes ${clockTimer.inMinutes.toString()}');
+    // print('inSeconds ${clockTimer.inSeconds.toString()}');
+    // print('inSeconds.remainder ${clockTimer.inSeconds.remainder(60).toString()}');
 
     return Text(
       timerText,
