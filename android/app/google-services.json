@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "559631361002",
+    "project_id": "smart-reclam",
+    "storage_bucket": "smart-reclam.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:559631361002:android:d06f870cc68cbb94e10893",
+        "android_client_info": {
+          "package_name": "com.example.smart_reclam"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAKrdkoRyADzQGKGDwqCTIAXZTvaZOPprI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -1,11 +1,18 @@
+// import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import './constat_details.dart';
 import './timer.dart';
 
 class ConstatCard extends StatelessWidget {
-  final String status;
-  final String title;
-  const ConstatCard({super.key, required this.status, required this.title});
+  final String statut;
+  final String type;
+  final String code;
+  final String horaire;
+  final String? prefecture;
+  final int? chrono;
+  final String id;
+  
+  const ConstatCard({super.key, required this.id, required this.statut, required this.type, required this.code, required this.horaire, this.prefecture, this.chrono});
 
   @override
   Widget build(BuildContext context) {
@@ -40,7 +47,7 @@ class ConstatCard extends StatelessWidget {
                       Row(
                         children: [
                           Text(
-                            '1GHCZ-0413223',
+                            code,
                             style: Theme.of(context).textTheme.bodyLarge,
                           ),
                           // MyTimer(),
@@ -48,17 +55,17 @@ class ConstatCard extends StatelessWidget {
                             width: 4,
                           ),
 
-                          if (status == 'Ouvert')
+                          if (statut == 'ouvert')
                             Badge(
                               label: Text('Ouvert'),
                               backgroundColor: Colors.amber[800],
                             )
-                          else if (status == 'Traité')
+                          else if (statut == 'traité')
                             Badge(
                               label: Text('Traité'),
                               backgroundColor: Colors.green[800],
                             )
-                          else if (status == 'Clôturé')
+                          else if (statut == 'Clôturé')
                             Badge(
                               label: Text('Clôturé'),
                               backgroundColor: Colors.grey[800],
@@ -84,7 +91,7 @@ class ConstatCard extends StatelessWidget {
                                   SizedBox(
                                     width: 4,
                                   ),
-                                  Text('12/12/2021 12:34'),
+                                  Text(horaire),
                                 ],
                               ),
                               SizedBox(
@@ -99,13 +106,13 @@ class ConstatCard extends StatelessWidget {
                                   SizedBox(
                                     width: 4,
                                   ),
-                                  Text('Casa Anfa'),
+                                  Text(prefecture ?? ''),
                                 ],
                               ),
                               SizedBox(
                                 height: 4,
                               ),
-                              if (status == 'Ouvert')
+                              if (statut == 'ouvert')
                                 Row(
                                   children: <Widget>[
                                     Icon(
@@ -115,7 +122,7 @@ class ConstatCard extends StatelessWidget {
                                     SizedBox(
                                       width: 4,
                                     ),
-                                    MyTimer(),
+                                    MyTimer(chrono: chrono ?? 60,),
                                   ],
                                 ),
                             ],
@@ -136,7 +143,7 @@ class ConstatCard extends StatelessWidget {
                                   context,
                                   MaterialPageRoute(
                                       builder: (context) =>
-                                           ConstatPage(title: title)),
+                                           ConstatPage(type: type, id: id)),
                                 );
                               },
                             ),
@@ -150,9 +157,7 @@ class ConstatCard extends StatelessWidget {
             ],
           ),
         ),
-        SizedBox(
-          height: 4,
-        ),
+        
       ],
     );
   }

@@ -4,14 +4,15 @@ import './constat_traitement.dart';
 import './constat_cloture.dart';
 
 class ConstatPage extends StatelessWidget {
-  final String title;
-  const ConstatPage({super.key, required this.title });
+  final String type;
+  final String id;
+  const ConstatPage({super.key, required this.type, required this.id });
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(title),
+        title: Text(type),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           // color: theme
@@ -34,7 +35,7 @@ class ConstatPage extends StatelessWidget {
           body: TabBarView(
             children: [
               ConstatDeclaration(
-                status: 'Ouvert',
+                id: id,
               ),
               ConstatTraitement(
                 status: 'Traité',

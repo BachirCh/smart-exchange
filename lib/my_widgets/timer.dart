@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 
 class MyTimer extends StatefulWidget {
-  const MyTimer({super.key});
+  final int chrono;
+  const MyTimer({super.key, required this.chrono});
 
   @override
   State<MyTimer> createState() => _MyTimerState();
@@ -9,7 +10,6 @@ class MyTimer extends StatefulWidget {
 
 class _MyTimerState extends State<MyTimer> with TickerProviderStateMixin {
   late AnimationController _controller;
-  int levelClock = 7200;
 
 
   @override
@@ -26,7 +26,7 @@ class _MyTimerState extends State<MyTimer> with TickerProviderStateMixin {
         vsync: this,
         duration: Duration(
             seconds:
-                levelClock) // gameData.levelClock is a user entered number elsewhere in the applciation
+                widget.chrono) // gameData.levelClock is a user entered number elsewhere in the applciation
         );
 
     _controller.forward();
@@ -36,7 +36,7 @@ class _MyTimerState extends State<MyTimer> with TickerProviderStateMixin {
   Widget build(BuildContext context) {
     return Countdown(
               animation: StepTween(
-                begin: levelClock, // THIS IS A USER ENTERED NUMBER
+                begin: widget.chrono, // THIS IS A USER ENTERED NUMBER
                 end: 0,
               ).animate(_controller),
             );

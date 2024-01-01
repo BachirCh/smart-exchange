@@ -1,103 +1,46 @@
+import 'package:firebase_auth/firebase_auth.dart' hide EmailAuthProvider;
+import 'package:firebase_ui_auth/firebase_ui_auth.dart';
 import 'package:flutter/material.dart';
-import './homepage.dart';
+import 'homepage.dart';
 
-class Login extends StatefulWidget {
+
+class Login extends StatelessWidget {
   const Login({super.key});
 
   @override
-  State<Login> createState() => _LoginState();
-}
-
-class _LoginState extends State<Login> {
-  final _formKey = GlobalKey<FormState>();
-  TextEditingController emailController = TextEditingController();
-  TextEditingController passwordController = TextEditingController();
-
-  @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        leading: null,
-        title: null,
-      ),
-      body: Center(
-        child: Column(
-          children: [
-            Image.asset(
-              'assets/images/logo.png',
-              height: 32,
-            ),
-            SizedBox(
-              height: 80,),
-            Form(
-              key: _formKey,
-              child: Padding(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 8, vertical: 16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 8, vertical: 16),
-                      child: TextFormField(
-                        controller: emailController,
-                        decoration: const InputDecoration(
-                            border: OutlineInputBorder(), labelText: "Email"),
-                        // validator: (value) {
-                        //   if (value == null || value.isEmpty) {
-                        //     return 'Please enter your email';
-                        //   }
-                        //   return null;
-                        // },
-                      ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 8, vertical: 16),
-                      child: TextFormField(
-                        controller: passwordController,
-                        obscureText: true,
-                        decoration: const InputDecoration(
-                            border: OutlineInputBorder(),
-                            labelText: "Password"),
-                        // validator: (value) {
-                        //   if (value == null || value.isEmpty) {
-                        //     return 'Please enter your password';
-                        //   }
-                        //   return null;
-                        // },
-                      ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 8, vertical: 16.0),
-                      child: Center(
-                        child: ElevatedButton(
-                          onPressed: () {
-                            if (_formKey.currentState!.validate()) {
-                              Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                      builder: (context) => MyHomePage()));
-                            } else {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                    content: Text('Please fill input')),
-                              );
-                            }
-                          },
-                          child: const Text('Se connecter'),
-                        ),
-                      ),
-                    ),
-                  ],
+    return StreamBuilder<User?>(
+      stream: FirebaseAuth.instance.authStateChanges(),
+      builder: (context, snapshot) {
+        if (!snapshot.hasData) {
+          return SignInScreen(
+            providers: [EmailAuthProvider()],
+            headerBuilder: (context, constraints, shrinkOffset) {
+              return Padding(
+                padding: const EdgeInsets.all(20),
+                child: AspectRatio(
+                  aspectRatio: 1,
+                  child: Image.asset(
+                    'assets/images/logo.png',
+                    height: 8,
+                  ),
                 ),
-              ),
-            ),
-          ],
-        ),
-      ),
+              );
+            },
+            subtitleBuilder: (context, action) {
+              return Padding(
+                padding: const EdgeInsets.symmetric(vertical: 8.0),
+                child: action == AuthAction.signIn
+                    ? const Text('Veuillez entrer vos identifiants!')
+                    : const Text('Welcome to Flutterfire, please sign up!'),
+              );
+            },
+            showAuthActionSwitch: false,
+          );
+        }
+
+        return MyHomePage();
+      },
     );
   }
 }
