@@ -39,9 +39,9 @@ class ConstatTraitement extends StatelessWidget {
                   SizedBox(
                     width: 4,
                   ),
-                  if (status == 'Ouvert')
+                  if (status == 'ouvert')
                     Badge(
-                      label: Text('Ouvert'),
+                      label: Text('ouvert'),
                       backgroundColor: Colors.amber[800],
                     )
                   else if (status == 'Traité')

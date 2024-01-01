@@ -1,13 +1,16 @@
 import 'dart:io';
 import 'dart:async';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:intl/intl.dart';
 import 'package:smart_reclam/my_widgets/constat_map.dart';
+import 'package:smart_reclam/my_widgets/reclamation.dart';
 
 class ConstatDeclaration extends StatefulWidget {
-  final String status;
-  const ConstatDeclaration({super.key, required this.status});
+  final String id;
+  const ConstatDeclaration({super.key, required this.id});
 
   @override
   State<ConstatDeclaration> createState() => _ConstatDeclarationState();
@@ -15,11 +18,59 @@ class ConstatDeclaration extends StatefulWidget {
 
 class _ConstatDeclarationState extends State<ConstatDeclaration> {
   late GoogleMapController mapController;
+  Reclamation reclamation = Reclamation(
+      id: '',
+      code: '',
+      statut: '',
+      prefecture: '',
+      horaire: Timestamp.now(),
+      chrono: null,
+      adresse: GeoPoint(0, 0),
+      description: '');
 
-  final LatLng _center = const LatLng(45.521563, -122.677433);
+  // final LatLng _center = const LatLng(45.521563, -122.677433);
 
-  void _onMapCreated(GoogleMapController controller) {
-    mapController = controller;
+  // void _onMapCreated(GoogleMapController controller) {
+  //   mapController = controller;
+  // }
+
+  @override
+  void initState() {
+    super.initState();
+    fetchRecord();
+  }
+//   final ref = FirebaseFirestore.instance.collection('reclamation').doc(widget.id).withConverter(
+//       fromFirestore: Reclamation.fromFirestore,
+//       toFirestore: (City city, _) => city.toFirestore(),
+//     );
+// final docSnap = await ref.get();
+// final city = docSnap.data();
+
+  fetchRecord() async {
+    final record = await FirebaseFirestore.instance
+        .collection('reclamation')
+        .doc(widget.id)
+        .get();
+    mapRecord(record);
+  }
+
+  mapRecord(DocumentSnapshot<Map<String, dynamic>> record) async {
+    var data = record.data();
+    var entry = Reclamation(
+        id: widget.id,
+        code: data!['code'],
+        statut: data['statut'],
+        prefecture: data['prefecture'],
+        horaire: data['horaire'],
+        chrono: data['chrono'],
+        adresse: data['adresse'],
+        description: data['description']);
+    if (mounted) {
+      setState(() {
+        reclamation = entry;
+      });
+    }
+    print(reclamation.code);
   }
 
   @override
@@ -61,7 +112,7 @@ class _ConstatDeclarationState extends State<ConstatDeclaration> {
               Row(
                 children: [
                   Text(
-                    '1GHCZ-0413223',
+                    reclamation.code,
                     style: Theme.of(context).textTheme.bodyLarge!.copyWith(
                           fontWeight: FontWeight.w600,
                         ),
@@ -69,17 +120,17 @@ class _ConstatDeclarationState extends State<ConstatDeclaration> {
                   SizedBox(
                     width: 4,
                   ),
-                  if (widget.status == 'Ouvert')
+                  if (reclamation.statut == 'ouvert')
                     Badge(
-                      label: Text('Ouvert'),
+                      label: Text('ouvert'),
                       backgroundColor: Colors.amber[800],
                     )
-                  else if (widget.status == 'Traité')
+                  else if (reclamation.statut == 'Traité')
                     Badge(
                       label: Text('Traité'),
                       backgroundColor: Colors.green[800],
                     )
-                  else if (widget.status == 'Clôturé')
+                  else if (reclamation.statut == 'Clôturé')
                     Badge(
                       label: Text('Clôturé'),
                       backgroundColor: Colors.grey[800],
@@ -100,7 +151,7 @@ class _ConstatDeclarationState extends State<ConstatDeclaration> {
                 height: 4,
               ),
               Text(
-                'Maintien des déchets verts sur la voie urbaine.',
+                reclamation.description ?? "-",
                 style: Theme.of(context).textTheme.bodyMedium,
               ),
               SizedBox(
@@ -119,20 +170,19 @@ class _ConstatDeclarationState extends State<ConstatDeclaration> {
               Row(
                 children: [
                   Text(
-                    '2, rue Hassan 2, Maarif, Casablanca',
+                    reclamation.adresse == null
+                        ? '-'
+                        : "${reclamation.adresse!.latitude.toString()}, ${reclamation.adresse!.longitude.toString()}",
                     style: Theme.of(context).textTheme.bodyMedium,
                   ),
                   SizedBox(
                     width: 4,
                   ),
                   TextButton(
-                      style: TextButton.styleFrom(
-                        primary: Theme.of(context).primaryColor,
-                      ),
                       onPressed: () {
                         Navigator.push(
                           context,
-                          MaterialPageRoute(builder: (context) => ConstatMap()),
+                          MaterialPageRoute(builder: (context) => ConstatMap(lat: reclamation.adresse!.latitude, long: reclamation.adresse!.longitude,)),
                         );
                       },
                       child: Text('Voir sur la carte'))
@@ -169,7 +219,8 @@ class _ConstatDeclarationState extends State<ConstatDeclaration> {
                 height: 4,
               ),
               Text(
-                '20/12/2023, 17:53',
+                DateFormat('dd/MM/yyyy, hh:mm')
+                    .format(reclamation.horaire!.toDate()),
                 style: Theme.of(context).textTheme.bodyMedium,
               ),
               SizedBox(

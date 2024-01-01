@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 class ConstatMap extends StatefulWidget {
-  const ConstatMap({super.key});
+  final double lat;
+  final double long;
+  const ConstatMap({super.key, required this.lat, required this.long});
 
   @override
   State<ConstatMap> createState() => _ConstatMapState();
@@ -10,8 +12,8 @@ class ConstatMap extends StatefulWidget {
 
 class _ConstatMapState extends State<ConstatMap> {
   late GoogleMapController mapController;
-
-  final LatLng _center = LatLng(33.589159, -7.673579);
+   
+  late LatLng _center = LatLng(widget.lat, widget.long);
 
   void _onMapCreated(GoogleMapController controller) {
     mapController = controller;
@@ -32,9 +34,9 @@ class _ConstatMapState extends State<ConstatMap> {
           zoom: 14.0,
         ),
         markers: {
-         const Marker(
+          Marker(
                markerId:  MarkerId("Casa"),
-               position: LatLng(33.589159, -7.673579),
+               position: _center,
                infoWindow: InfoWindow(
                title: "Constat",
                snippet: "Constat test",

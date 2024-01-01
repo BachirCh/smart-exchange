@@ -17,6 +17,14 @@ dependencies:
   google_maps_flutter: ^2.5.0
   image_picker: ^0.8.6
   flutter_launcher_icons: ^0.13.1
+  firebase_core: ^2.24.2
+  firebase_auth: ^4.15.3
+  firebase_ui_auth: ^1.11.0
+  intl: ^0.18.1
+  firebase_database: ^10.3.8
+  cloud_firestore: ^4.13.6
+  flutter_localizations:
+    sdk: flutter
 
 dev_dependencies:
   flutter_test:
