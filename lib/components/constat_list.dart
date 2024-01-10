@@ -1,8 +1,10 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+// import 'package:location/location.dart';
 import './reclamation.dart';
-import './constat_card.dart';
+import 'card.dart';
+import 'package:geolocator/geolocator.dart';
 
 class ConstatList extends StatefulWidget {
   final String statut;
@@ -19,10 +21,13 @@ class _ConstatListState extends State<ConstatList> {
   @override
   void initState() {
     super.initState();
+    // LocationService().requestPermission();
     print(widget.statut);
     fetchRecords();
     FirebaseFirestore.instance
-        .collection('reclamation').where('statut', isEqualTo: widget.statut)
+        .collection("reclamation")
+        .where('statut', isEqualTo: widget.statut)
+        // .orderBy("horaire", descending: true)
         .snapshots()
         .listen((records) {
       mapRecords(records);
@@ -37,6 +42,15 @@ class _ConstatListState extends State<ConstatList> {
     // });
   }
 
+  getLocation() async {
+    await Geolocator.checkPermission();
+    await Geolocator.requestPermission();
+    Position position = await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.high);
+    print('---------------------------------');
+    print(position);
+  }
+
   fetchRecords() async {
     final records = await FirebaseFirestore.instance
         .collection('reclamation')
@@ -49,18 +63,20 @@ class _ConstatListState extends State<ConstatList> {
     var list = records.docs
         .map((reclamation) => Reclamation(
               id: reclamation.id,
+              type: reclamation.data()['type'],
+              remarqueDeclaration: reclamation.data()['remarqueDeclaration'],
               code: reclamation.data()['code'],
               statut: reclamation.data()['statut'],
               prefecture: reclamation.data()['prefecture'],
               horaire: reclamation.data()['horaire'],
               chrono: reclamation.data()['chrono'],
+              imageUrl: reclamation.data()['imageUrl'],
             ))
-        .toList();
-    // print(DateFormat('dd/MM/yyyy, hh:mm').format(list[0].horaire!.toDate()));
+        .toList()..sort((a, b) => b.horaire!.compareTo(a.horaire!));
     if (mounted) {
-    setState(() {
-      reclamations = list;
-    });
+      setState(() {
+        reclamations = list;
+      });
     }
   }
 
@@ -79,11 +95,8 @@ class _ConstatListState extends State<ConstatList> {
               padding: const EdgeInsets.symmetric(horizontal: 20.0),
               child: Text("${reclamations.length} résultats"),
             ),
-            // SizedBox(
-            //   height: 8,
-            // ),
             SizedBox(
-              height: 500,
+              height: 800,
               child: ListView.builder(
                 itemCount: reclamations.length,
                 itemBuilder: (context, index) {
@@ -97,6 +110,7 @@ class _ConstatListState extends State<ConstatList> {
                       statut: reclamations[index].statut,
                       type: 'Accident',
                       chrono: reclamations[index].chrono,
+                      imageUrl: reclamations[index].imageUrl,
                     ),
                   );
                 },
@@ -110,6 +124,31 @@ class _ConstatListState extends State<ConstatList> {
     );
   }
 }
+
+// class LocationService {
+//   Location location = Location();
+
+//   Future<bool> requestPermission() async {
+//     final permission = await location.requestPermission();
+//     return permission == PermissionStatus.granted;
+//   }
+
+//   Future<LocationData> getCurrentLocation() async {
+//     final serviceEnabled = await location.serviceEnabled();
+//     if (!serviceEnabled) {
+//       final result = await location.requestService;
+//       if (result == true) {
+//         print('Service has been enabled');
+//       } else {
+//         throw Exception('GPS service not enabled');
+//       }
+//     }
+
+//     final locationData = await location.getLocation();
+//     print("-------------------");
+//     return locationData;
+//   }
+// }
 
 // class GetUserName extends StatelessWidget {
 //   final String documentId;
