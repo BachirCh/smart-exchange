@@ -2,11 +2,12 @@ import 'dart:io';
 import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:geocoding/geocoding.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:intl/intl.dart';
-import 'package:smart_reclam/my_widgets/constat_map.dart';
-import 'package:smart_reclam/my_widgets/reclamation.dart';
+import 'package:smart_reclam/components/map.dart';
+import 'package:smart_reclam/components/reclamation.dart';
 
 class ConstatDeclaration extends StatefulWidget {
   final String id;
@@ -23,10 +24,12 @@ class _ConstatDeclarationState extends State<ConstatDeclaration> {
       code: '',
       statut: '',
       prefecture: '',
+      imageUrl: '',
       horaire: Timestamp.now(),
       chrono: null,
       adresse: GeoPoint(0, 0),
-      description: '');
+      type: '');
+      String placemark = '';
 
   // final LatLng _center = const LatLng(45.521563, -122.677433);
 
@@ -38,6 +41,7 @@ class _ConstatDeclarationState extends State<ConstatDeclaration> {
   void initState() {
     super.initState();
     fetchRecord();
+    
   }
 //   final ref = FirebaseFirestore.instance.collection('reclamation').doc(widget.id).withConverter(
 //       fromFirestore: Reclamation.fromFirestore,
@@ -52,6 +56,18 @@ class _ConstatDeclarationState extends State<ConstatDeclaration> {
         .doc(widget.id)
         .get();
     mapRecord(record);
+    getPlacemark(record);
+    
+  }
+
+  getPlacemark (record) async {
+    var data = record.data();
+    List<Placemark> placemarks = await placemarkFromCoordinates(
+        data['adresse']!.latitude, data['adresse']!.longitude);
+    Placemark place = placemarks[0];
+    setState(() {
+      placemark = '${place.street}, ${place.postalCode}, ${place.locality}';
+    });
   }
 
   mapRecord(DocumentSnapshot<Map<String, dynamic>> record) async {
@@ -64,17 +80,20 @@ class _ConstatDeclarationState extends State<ConstatDeclaration> {
         horaire: data['horaire'],
         chrono: data['chrono'],
         adresse: data['adresse'],
-        description: data['description']);
+        imageUrl: data['imageUrl'],
+        remarqueDeclaration: data['remarqueDeclaration'],
+        type: data['type']);
+    
     if (mounted) {
       setState(() {
         reclamation = entry;
       });
     }
-    print(reclamation.code);
   }
 
   @override
   Widget build(BuildContext context) {
+
     return Scaffold(
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () {
@@ -101,13 +120,13 @@ class _ConstatDeclarationState extends State<ConstatDeclaration> {
       ),
       body: SingleChildScrollView(
         child: Padding(
-          padding: EdgeInsets.all(8),
+          padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.start,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
               SizedBox(
-                height: 12,
+                height: 16,
               ),
               Row(
                 children: [
@@ -138,10 +157,10 @@ class _ConstatDeclarationState extends State<ConstatDeclaration> {
                 ],
               ),
               SizedBox(
-                height: 12,
+                height: 16,
               ),
               Text(
-                'Description',
+                'Type',
                 style: Theme.of(context)
                     .textTheme
                     .bodyMedium!
@@ -151,62 +170,11 @@ class _ConstatDeclarationState extends State<ConstatDeclaration> {
                 height: 4,
               ),
               Text(
-                reclamation.description ?? "-",
+                reclamation.type ?? '-',
                 style: Theme.of(context).textTheme.bodyMedium,
               ),
               SizedBox(
-                height: 12,
-              ),
-              Text(
-                'Addresse',
-                style: Theme.of(context)
-                    .textTheme
-                    .bodyMedium!
-                    .copyWith(fontWeight: FontWeight.w600),
-              ),
-              SizedBox(
-                height: 4,
-              ),
-              Row(
-                children: [
-                  Text(
-                    reclamation.adresse == null
-                        ? '-'
-                        : "${reclamation.adresse!.latitude.toString()}, ${reclamation.adresse!.longitude.toString()}",
-                    style: Theme.of(context).textTheme.bodyMedium,
-                  ),
-                  SizedBox(
-                    width: 4,
-                  ),
-                  TextButton(
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (context) => ConstatMap(lat: reclamation.adresse!.latitude, long: reclamation.adresse!.longitude,)),
-                        );
-                      },
-                      child: Text('Voir sur la carte'))
-                ],
-              ),
-              SizedBox(
-                height: 12,
-              ),
-              Text(
-                'Préfecture',
-                style: Theme.of(context)
-                    .textTheme
-                    .bodyMedium!
-                    .copyWith(fontWeight: FontWeight.w600),
-              ),
-              SizedBox(
-                height: 4,
-              ),
-              Text(
-                'Casa Anfa',
-                style: Theme.of(context).textTheme.bodyMedium,
-              ),
-              SizedBox(
-                height: 12,
+                height: 16,
               ),
               Text(
                 'Horaire du constat',
@@ -223,11 +191,50 @@ class _ConstatDeclarationState extends State<ConstatDeclaration> {
                     .format(reclamation.horaire!.toDate()),
                 style: Theme.of(context).textTheme.bodyMedium,
               ),
+            
               SizedBox(
-                height: 12,
+                height: 16,
               ),
               Text(
-                'Repère',
+                'Adresse',
+                style: Theme.of(context)
+                    .textTheme
+                    .bodyMedium!
+                    .copyWith(fontWeight: FontWeight.w600),
+              ),
+              
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    placemark,
+                    // reclamation.adresse == null
+                    //     ? '-'
+                    //     : "${reclamation.adresse!.latitude.toString()}, ${reclamation.adresse!.longitude.toString()}",
+                    style: Theme.of(context).textTheme.bodyMedium,
+                  ),
+                  SizedBox(
+                    width: 8,
+                  ),
+                  OutlinedButton(
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => ConstatMap(
+                                    lat: reclamation.adresse!.latitude,
+                                    long: reclamation.adresse!.longitude,
+                                  )),
+                        );
+                      },
+                      child: Text('Voir sur la carte'))
+                ],
+              ),
+              SizedBox(
+                height: 16,
+              ),
+              Text(
+                'Préfecture',
                 style: Theme.of(context)
                     .textTheme
                     .bodyMedium!
@@ -237,11 +244,12 @@ class _ConstatDeclarationState extends State<ConstatDeclaration> {
                 height: 4,
               ),
               Text(
-                '-',
+                reclamation.prefecture ?? '-',
                 style: Theme.of(context).textTheme.bodyMedium,
               ),
+
               SizedBox(
-                height: 12,
+                height: 16,
               ),
               Text(
                 'Remarques',
@@ -254,13 +262,27 @@ class _ConstatDeclarationState extends State<ConstatDeclaration> {
                 height: 4,
               ),
               Text(
-                '-',
+                reclamation.remarqueDeclaration ?? '-',
                 style: Theme.of(context).textTheme.bodyMedium,
               ),
               SizedBox(
-                height: 12,
+                height: 16,
               ),
-              Image(image: AssetImage('assets/images/photo1.jpeg')),
+              if (reclamation.imageUrl != null && reclamation.imageUrl!.isNotEmpty)
+              Image(
+                image: NetworkImage(reclamation.imageUrl!),
+                fit: BoxFit.cover,
+                height: 120,
+                width: 120,
+              )
+            else
+              Image(
+                image: AssetImage('assets/images/photo1.jpeg'),
+                fit: BoxFit.cover,
+                height: 120,
+                width: 120,
+              ),
+              
             ],
           ),
         ),

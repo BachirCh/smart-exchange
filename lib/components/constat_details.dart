@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import './constat_declaration.dart';
 import './constat_traitement.dart';
-import './constat_cloture.dart';
+import '../pages/constat_cloture.dart';
 
 class ConstatPage extends StatelessWidget {
   final String type;
