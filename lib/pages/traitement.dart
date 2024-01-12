@@ -28,7 +28,7 @@ class ConstatTraitement extends StatelessWidget {
                       height: 40,
                     ),
                     SvgPicture.asset(
-                      'assets/images/empty.svg',
+                      'assets/images/illus2.svg',
                       width: 150,
                     ),
                     SizedBox(
@@ -46,17 +46,29 @@ class ConstatTraitement extends StatelessWidget {
       :
      Scaffold(
       floatingActionButton: 
-      reclamation.statut == "traité" ? FloatingActionButton.extended(
-        onPressed: () {
-          showAlertDialog(context);
-        },
-        backgroundColor: Theme.of(context).primaryColor,
-        label: Text(
-          'Clôturer',
-          style: TextStyle(color: Colors.white),
-        ),
-        // icon: Icon(Icons.camera, color: Colors.white,),
-      ) : SizedBox(),
+
+      FutureBuilder(
+          future: getUserRole(),
+          builder: (context, snapshot) {
+            if (snapshot.hasData &&
+                snapshot.data == 'admin' &&
+                reclamation.statut == 'traité') {
+              return FloatingActionButton.extended(
+                onPressed: () {
+                  showAlertDialog(context);
+                },
+                backgroundColor: Theme.of(context).primaryColor,
+                label: Text(
+                  'Clôturer',
+                  style: TextStyle(color: Colors.white),
+                ),
+               
+              );
+            } else {
+              return SizedBox();
+            }
+          }),
+     
       body: SingleChildScrollView(
         child: Padding(
           padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),

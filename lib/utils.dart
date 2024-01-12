@@ -114,3 +114,12 @@ Future<String> uploadImage(Uint8List image) async {
 
   return url;
 }
+
+getUserRole() async {
+  final user = FirebaseAuth.instance.currentUser;
+  final role = await FirebaseFirestore.instance
+      .collection('Users')
+      .doc(user!.uid)
+      .get();
+  return role.data()!['role'];
+}

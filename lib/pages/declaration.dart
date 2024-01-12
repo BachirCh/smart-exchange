@@ -19,19 +19,30 @@ class ConstatDeclaration extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      floatingActionButton: reclamation.statut == 'ouvert'
-          ? FloatingActionButton.extended(
-              onPressed: () {
-                showTraitementDialog(context);
-              },
-              backgroundColor: Theme.of(context).primaryColor,
-              label: Text(
-                'Traiter',
-                style: TextStyle(color: Colors.white),
-              ),
-              // icon: Icon(Icons.camera, color: Colors.white,),
-            )
-          : SizedBox(),
+      floatingActionButton: FutureBuilder(
+          future: getUserRole(),
+          builder: (context, snapshot) {
+            if (snapshot.hasData &&
+                snapshot.data == 'agent' &&
+                reclamation.statut == 'ouvert') {
+              return FloatingActionButton.extended(
+                onPressed: () {
+                  showTraitementDialog(context);
+                },
+                backgroundColor: Theme.of(context).primaryColor,
+                label: Text(
+                  'Traiter',
+                  style: TextStyle(color: Colors.white),
+                ),
+                icon: const Icon(
+                  Icons.add,
+                  color: Colors.white,
+                ),
+              );
+            } else {
+              return SizedBox();
+            }
+          }),
       body: SingleChildScrollView(
         child: Padding(
           padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -316,21 +327,20 @@ class ConstatDeclaration extends StatelessWidget {
                               //   minimumSize: const Size.fromHeight(25),
                               // ),
                               onPressed: () {
-                                if (_formKey.currentState!.validate()) {
+                                if (_formKey.currentState!.validate() &&
+                                    _imageVTraitement.value != null) {
                                   var remarqueTraitement =
                                       remarqueTraitementController.text;
                                   // var horaire = horaireController.text;
                                   var horaireTraitement = DateTime.now();
-                                  // print(typeController.text);
-                                  // print("-------");
-                                  // print(DateTime.fromMillisecondsSinceEpoch(horaire.millisecondsSinceEpoch));
-                                  // print(DateTime.fromMillisecondsSinceEpoch(chrono2));
+                            
                                   traiterReclamation(
                                     reclamationId: reclamation.id,
-                                      imageTraitement: _imageVTraitement.value,
-                                      remarqueTraitement: remarqueTraitement,
-                                      horaireTraitement: Timestamp.fromDate(horaireTraitement),
-                                      );
+                                    imageTraitement: _imageVTraitement.value,
+                                    remarqueTraitement: remarqueTraitement,
+                                    horaireTraitement:
+                                        Timestamp.fromDate(horaireTraitement),
+                                  );
                                   Navigator.pop(context);
                                   _imageVTraitement.value = null;
                                 }

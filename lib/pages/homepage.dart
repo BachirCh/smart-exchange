@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:smart_reclam/components/dropdown.dart';
 import '../components/dropdown2.dart';
 import '../utils.dart';
@@ -14,6 +15,7 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   final _formKey = GlobalKey<FormState>();
+  final userRole = getUserRole();
 
   final _imageV = ValueNotifier<Uint8List?>(null);
 
@@ -24,10 +26,27 @@ class _MyHomePageState extends State<MyHomePage> {
 
   @override
   Widget build(BuildContext context) {
-    // final theme = Theme.of(context);
-
     return Scaffold(
       appBar: AppBar(
+        titleSpacing: 50,
+        leading: Column(
+          children: [
+            SvgPicture.asset(
+              'assets/images/face.svg',
+              width: 24,
+            ),
+            FutureBuilder(
+                future: getUserRole(),
+                builder: (context, snapshot) {
+                  if (snapshot.hasData) {
+                    return Text(snapshot.data == "agent" ? "Agent" : "Admin", style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500),);
+                  } else {
+                    return SizedBox();
+                  }
+                }),
+          ],
+        ),
+        // leading: Text(userRole == "agent" ? "Agent" : "Admin"),
         actions: [
           IconButton(
             icon: Icon(
@@ -45,49 +64,8 @@ class _MyHomePageState extends State<MyHomePage> {
           height: 32,
         ),
       ),
-      // bottomNavigationBar: NavigationBar(
-      //   onDestinationSelected: (int index) {
-      //     setState(() {
-      //       currentPageIndex = index;
-      //     });
-      //   },
-      //   indicatorColor: Theme.of(context).colorScheme.primary,
-      //   selectedIndex: currentPageIndex,
-      //   destinations: const <Widget>[
-      //     NavigationDestination(
-      //       selectedIcon: Badge(
-      //         label: Text('3'),
-      //         child: Icon(
-      //           Icons.messenger_sharp,
-      //           color: Colors.white,
-      //         ),
-      //       ),
-      //       icon: Badge(
-      //         label: Text('3'),
-      //         child: Icon(Icons.messenger_sharp),
-      //       ),
-      //       label: 'Constats',
-      //     ),
-      //     NavigationDestination(
-      //       selectedIcon: Badge(
-      //         label: Text('8'),
-      //         child: Icon(
-      //           Icons.notifications,
-      //           color: Colors.white,
-      //         ),
-      //       ),
-      //       icon: Badge(
-      //         label: Text('8'),
-      //         child: Icon(Icons.notifications),
-      //       ),
-      //       label: 'Réclamations',
-      //     ),
-      //   ],
-      // ),
-      body:
 
-          /// Home page
-          DefaultTabController(
+      body: DefaultTabController(
         length: 4,
         child: Scaffold(
           appBar: TabBar(
@@ -118,27 +96,29 @@ class _MyHomePageState extends State<MyHomePage> {
               ),
             ],
           ),
-          floatingActionButton: FloatingActionButton.extended(
-            onPressed: () {
-              getLocation();
-              showReclamationDialog();
-              // Navigator.push(
-              //   context,
-              //   MaterialPageRoute(
-              //       builder: (context) => AddReclamation(
-              //           addMessage: (message) => print(message))),
-              // );
-            },
-            backgroundColor: Theme.of(context).colorScheme.primary,
-            label: const Text(
-              'Nouveau constat',
-              style: TextStyle(color: Colors.white),
-            ),
-            icon: const Icon(
-              Icons.add,
-              color: Colors.white,
-            ),
-          ),
+          floatingActionButton: FutureBuilder(
+              future: getUserRole(),
+              builder: (context, snapshot) {
+                if (snapshot.hasData && snapshot.data == 'admin') {
+                  return FloatingActionButton.extended(
+                    onPressed: () {
+                      getLocation();
+                      showReclamationDialog();
+                    },
+                    backgroundColor: Theme.of(context).colorScheme.primary,
+                    label: const Text(
+                      'Nouveau constat',
+                      style: TextStyle(color: Colors.white),
+                    ),
+                    icon: const Icon(
+                      Icons.add,
+                      color: Colors.white,
+                    ),
+                  );
+                } else {
+                  return SizedBox();
+                }
+              }),
         ),
       ),
 
@@ -150,8 +130,7 @@ class _MyHomePageState extends State<MyHomePage> {
     var codeController = TextEditingController();
     codeController.text =
         "SR-${(DateTime.now().toUtc().millisecondsSinceEpoch ~/ Duration.millisecondsPerMinute).toString()}";
-    // var code = DateTime.now().toUtc().millisecondsSinceEpoch;
-    // var statutController = TextEditingController();
+
     var prefectureController = TextEditingController();
     var chronoController = TextEditingController();
     var typeController = TextEditingController();
@@ -359,7 +338,8 @@ class _MyHomePageState extends State<MyHomePage> {
                               //   minimumSize: const Size.fromHeight(25),
                               // ),
                               onPressed: () {
-                                if (_formKey.currentState!.validate()) {
+                                if (_formKey.currentState!.validate() &&
+                                    _imageV.value != null) {
                                   var prefecture = prefectureController.text;
                                   var chrono = 0;
                                   // var statut = "ouvert";
@@ -370,10 +350,10 @@ class _MyHomePageState extends State<MyHomePage> {
                                     chrono = 24 * 3600;
                                   } else {
                                     chrono = 0;
-                                    // statut = "clôturé";
                                   }
 
-                                  var statut = chrono == 0 ? "clôturé" : "ouvert";
+                                  var statut =
+                                      chrono == 0 ? "clôturé" : "ouvert";
                                   var code = codeController.text;
                                   var type = typeController.text;
                                   var remarqueDeclaration =
