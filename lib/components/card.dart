@@ -1,13 +1,14 @@
 // import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import './constat_details.dart';
-import './timer.dart';
 
 class ConstatCard extends StatelessWidget {
   final String statut;
   final String type;
   final String code;
   final String horaire;
+  final String? horaireTraitement;
+  final String chrono2;
   final String? prefecture;
   final int? chrono;
   final String id;
@@ -20,7 +21,9 @@ class ConstatCard extends StatelessWidget {
       required this.type,
       required this.code,
       required this.horaire,
+      required this.chrono2,
       this.prefecture,
+      this.horaireTraitement,
       this.chrono,
       this.imageUrl});
 
@@ -39,148 +42,132 @@ class ConstatCard extends StatelessWidget {
           // side: BorderSide(
           //   color: (Colors.grey[300])!, //<-- SEE HERE
           // ),
-          borderRadius: BorderRadius.circular(16.0),
+          borderRadius: BorderRadius.circular(20.0),
         ),
         surfaceTintColor: Colors.white,
         clipBehavior: Clip.hardEdge,
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.start,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: <Widget>[
-            if (imageUrl != null && imageUrl!.isNotEmpty)
-              Image(
-                image: NetworkImage(imageUrl!),
-                fit: BoxFit.cover,
-                height: 120,
-                width: 120,
-              )
-            else
-              Image(
-                image: AssetImage('assets/images/photo1.jpeg'),
-                fit: BoxFit.cover,
-                height: 120,
-                width: 120,
-              ),
-            Expanded(
-              child: Padding(
-                padding: EdgeInsets.all(8.0),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.start,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: <Widget>[
-                    Row(
-                      children: [
-                        Text(
-                          code,
-                          style: Theme.of(context).textTheme.bodyLarge,
-                        ),
-                        // MyTimer(),
-                        SizedBox(
-                          width: 4,
-                        ),
-
-                        if (statut == 'ouvert')
-                          Badge(
-                            label: Text('Ouvert'),
-                            backgroundColor: Colors.amber[800],
-                          )
-                        else if (statut == 'traité')
-                          Badge(
-                            label: Text('Traité'),
-                            backgroundColor: Colors.green[800],
-                          )
-                        else if (statut == 'Clôturé')
-                          Badge(
-                            label: Text('Clôturé'),
-                            backgroundColor: Colors.grey[800],
+        child: Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              if (imageUrl != null && imageUrl!.isNotEmpty)
+                Container(
+                  clipBehavior: Clip.hardEdge,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(12.0),
+                  ),
+                  child: Image(
+                    image: NetworkImage(imageUrl!),
+                    fit: BoxFit.cover,
+                    height: 150,
+                    width: 120,
+                  ),
+                ),
+              // else
+              //   Image(
+              //     image: AssetImage('assets/images/photo1.jpeg'),
+              //     fit: BoxFit.cover,
+              //     height: 120,
+              //     width: 120,
+              //   ),
+              Expanded(
+                child: Padding(
+                  padding: EdgeInsets.fromLTRB(10, 0, 0, 0),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: <Widget>[
+                      Row(
+                        children: [
+                          Text(
+                            code,
+                            style:
+                                Theme.of(context).textTheme.bodyLarge!.copyWith(
+                                      fontWeight: FontWeight.w600,
+                                    ),
                           ),
-                      ],
-                    ),
-                    SizedBox(
-                      height: 4,
-                    ),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      children: <Widget>[
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              children: <Widget>[
-                                Icon(
-                                  Icons.calendar_month,
-                                  size: 18,
-                                ),
-                                SizedBox(
-                                  width: 4,
-                                ),
-                                Text(horaire),
-                              ],
+                          // MyTimer(),
+                          SizedBox(
+                            width: 4,
+                          ),
+
+                          if (statut == 'ouvert')
+                            Badge(
+                              label: Text('ouvert'),
+                              backgroundColor: Colors.amber[800],
+                            )
+                          else if (statut == 'traité')
+                            Badge(
+                              label: Text('traité'),
+                              backgroundColor: Colors.green[800],
+                            )
+                          else if (statut == 'clôturé')
+                            Badge(
+                              label: Text('clôturé'),
+                              backgroundColor: Colors.grey[800],
                             ),
-                            SizedBox(
-                              height: 4,
-                            ),
-                            Row(
-                              children: <Widget>[
-                                Icon(
-                                  Icons.pin_drop,
-                                  size: 18,
-                                ),
-                                SizedBox(
-                                  width: 4,
-                                ),
-                                Text(prefecture ?? ''),
-                              ],
-                            ),
-                            SizedBox(
-                              height: 4,
-                            ),
-                            if (statut == 'ouvert')
-                              Row(
-                                children: <Widget>[
-                                  Icon(
-                                    Icons.timer_outlined,
-                                    size: 18,
-                                  ),
-                                  SizedBox(
-                                    width: 4,
-                                  ),
-                                  MyTimer(
-                                    chrono: chrono ?? 60,
-                                  ),
-                                ],
-                              ),
-                          ],
-                        ),
-                        // Ink(
-                        //   decoration: ShapeDecoration(
-                        //     // color: theme
-                        //     //     .colorScheme.primaryContainer,
-                        //     shape: CircleBorder(),
-                        //     color: Theme.of(context).highlightColor,
-                        //   ),
-                        //   child: IconButton(
-                        //     icon: const Icon(Icons.remove_red_eye),
-                        //     // color: theme
-                        //     //     .colorScheme.onPrimaryContainer,
-                        //     onPressed: () {
-                        //       Navigator.push(
-                        //         context,
-                        //         MaterialPageRoute(
-                        //             builder: (context) =>
-                        //                 ConstatPage(type: type, id: id)),
-                        //       );
-                        //     },
-                        //   ),
-                        // ),
-                      ],
-                    ),
-                  ],
+                        ],
+                      ),
+                      SizedBox(
+                        height: 8,
+                      ),
+                      Row(
+                        children: <Widget>[
+                          Icon(
+                            Icons.pin_drop,
+                            size: 18,
+                          ),
+                          SizedBox(
+                            width: 4,
+                          ),
+                          Text(prefecture ?? ''),
+                        ],
+                      ),
+                      SizedBox(
+                        height: 8,
+                      ),
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: <Widget>[
+                          Icon(
+                            Icons.calendar_month,
+                            size: 18,
+                          ),
+                          SizedBox(
+                            width: 4,
+                          ),
+                          Text('Déclaré le \n $horaire'),
+                        ],
+                      ),
+                      SizedBox(
+                        height: 8,
+                      ),
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: <Widget>[
+                          Icon(
+                            Icons.timer_outlined,
+                            size: 18,
+                          ),
+                          SizedBox(
+                            width: 4,
+                          ),
+                          if (statut == 'ouvert') Text('À traiter avant le \n $chrono2')
+                          else if (statut == 'traité' || statut == 'clôturé') Text('Traité le \n $horaireTraitement'),
+                          // else if (statut == 'clôturé') Text('Clôturé le \n $chrono2'),
+                          // MyTimer(
+                          //   chrono: chrono ?? 60,
+                          // ),
+                        ],
+                      ),
+                    ],
+                  ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

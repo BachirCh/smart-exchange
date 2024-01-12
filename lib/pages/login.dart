@@ -32,7 +32,7 @@ class Login extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(vertical: 8.0),
                 child: action == AuthAction.signIn
                     ? const Text('Veuillez entrer vos identifiants!')
-                    : const Text('Welcome to Flutterfire, please sign up!'),
+                    : const Text('Veuillez entrer vos identifiants.'),
               );
             },
             showAuthActionSwitch: false,

@@ -1,15 +1,18 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+
+import '../components/reclamation.dart';
 
 class ConstatCloture extends StatelessWidget {
-  final String status;
-  const ConstatCloture({super.key, required this.status});
+  final Reclamation reclamation;
+  const ConstatCloture({super.key, required this.reclamation});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: SingleChildScrollView(
         child: Padding(
-          padding: EdgeInsets.all(8),
+          padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.start,
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -20,7 +23,7 @@ class ConstatCloture extends StatelessWidget {
               Row(
                 children: [
                   Text(
-                    '1GHCZ-0413223',
+                    reclamation.code,
                     style: Theme.of(context).textTheme.bodyLarge!.copyWith(
                           fontWeight: FontWeight.w600,
                         ),
@@ -28,19 +31,19 @@ class ConstatCloture extends StatelessWidget {
                   SizedBox(
                     width: 4,
                   ),
-                  if (status == 'Ouvert')
+                  if (reclamation.statut == 'ouvert')
                     Badge(
-                      label: Text('Ouvert'),
+                      label: Text('ouvert'),
                       backgroundColor: Colors.amber[800],
                     )
-                  else if (status == 'Traité')
+                  else if (reclamation.statut== 'traité')
                     Badge(
-                      label: Text('Traité'),
+                      label: Text('traité'),
                       backgroundColor: Colors.green[800],
                     )
-                  else if (status == 'Clôturé')
+                  else if (reclamation.statut== 'clôturé')
                     Badge(
-                      label: Text('Clôturé'),
+                      label: Text('clôturé'),
                       backgroundColor: Colors.grey[800],
                     ),
                 ],
@@ -59,7 +62,8 @@ class ConstatCloture extends StatelessWidget {
                 height: 4,
               ),
               Text(
-                '21/12/2023, 13:01',
+                DateFormat('dd/MM/yyyy, HH:mm')
+                    .format(reclamation.horaire?.toDate() ?? DateTime.now()),
                 style: Theme.of(context).textTheme.bodyMedium,
               ),
             ],

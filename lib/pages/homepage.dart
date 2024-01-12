@@ -1,4 +1,3 @@
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -131,9 +130,14 @@ class _MyHomePageState extends State<MyHomePage> {
               // );
             },
             backgroundColor: Theme.of(context).colorScheme.primary,
-            
-            label: const Text('Nouveau constat', style: TextStyle(color: Colors.white),),
-            icon: const Icon(Icons.add, color: Colors.white,),
+            label: const Text(
+              'Nouveau constat',
+              style: TextStyle(color: Colors.white),
+            ),
+            icon: const Icon(
+              Icons.add,
+              color: Colors.white,
+            ),
           ),
         ),
       ),
@@ -152,33 +156,31 @@ class _MyHomePageState extends State<MyHomePage> {
     var chronoController = TextEditingController();
     var typeController = TextEditingController();
     var remarqueDeclarationController = TextEditingController();
-typeController.text = 'A';
-void setType(String value) => setState(() {
-          if (value == 'a') {
-            typeController.text = 'A';
-          } else if (value == 'b') {
-            typeController.text = 'B';
-          } else if (value == 'c') {
-            typeController.text = 'C';
-          } else if (value == 'd') {
-            typeController.text = 'D';
-          } else if (value == 'e') {
-            typeController.text = 'E';
-          } else if (value == 'f') {
-            typeController.text = 'F';
-          } else if (value == 'g') {
-            typeController.text = 'G';
-          }
-        });
+    typeController.text = 'Secteur non balayé ou collecté';
+    chronoController.text = '24 heures';
     void changeChrono(String value) => setState(() {
-          if (value == 'a') {
+          if (value == 'Secteur non balayé ou collecté' ||
+              value == 'Points noirs non éradiqués' ||
+              value == 'Artères ou place non lavées' ||
+              value == 'Poubelle ou conteneur détérioré' ||
+              value == 'Véhicule pollué' ||
+              value == 'Terrains vagues avec déchets') {
+            chronoController.text = '24 heures';
+          } else if (value == 'Déchets laissés sur place' ||
+              value == 'Boulevard/rue/place non balayés' ||
+              value == 'Véhicule répandant des ordures') {
             chronoController.text = '2 heures';
           } else {
-            chronoController.text = '24 heures';
+            chronoController.text = 'Immediat';
           }
+        });
+    void setType(String value) => setState(() {
+          typeController.text = value;
+          changeChrono(value);
         });
 
     showDialog(
+        barrierDismissible: false,
         context: context,
         builder: (context) {
           return Dialog(
@@ -240,7 +242,21 @@ void setType(String value) => setState(() {
                         height: 16,
                       ),
                       DropdownMenuExample2(
-                        list: ["a", "b", "c", "d", "e", "f", "g"],
+                        list: [
+                          "Secteur non balayé ou collecté",
+                          "Déchets laissés sur place",
+                          "Boulevard/rue/place non balayés",
+                          "Points noirs non éradiqués",
+                          "Déchêts non évacués",
+                          "Artères ou place non lavées",
+                          "Poubelle ou conteneur détérioré",
+                          "Véhicule pollué",
+                          "Véhicule répandant des ordures",
+                          "Véhicule laissant échapper lixiviat",
+                          "Véhicule présenté en mauvais état",
+                          "Terrains vagues avec déchets",
+                          "Non-respect du lieu de vidage",
+                        ],
                         setType: setType,
                         changeChrono: changeChrono,
                         label: "Type de constat",
@@ -295,13 +311,13 @@ void setType(String value) => setState(() {
                           SizedBox(
                             width: 8,
                           ),
-                          OutlinedButton.icon(
-                            onPressed: () {
-                              selectImage(ImageSource.gallery);
-                            },
-                            label: const Text('Galerie'),
-                            icon: Icon(Icons.image),
-                          ),
+                          // OutlinedButton.icon(
+                          //   onPressed: () {
+                          //     selectImage(ImageSource.gallery);
+                          //   },
+                          //   label: const Text('Galerie'),
+                          //   icon: Icon(Icons.image),
+                          // ),
                         ],
                       ),
                       SizedBox(
@@ -317,7 +333,20 @@ void setType(String value) => setState(() {
                                   key: ValueKey(value),
                                   child: value == null
                                       ? SizedBox()
-                                      : Image.memory(value)));
+                                      : Stack(children: [
+                                          Image.memory(value),
+                                          Positioned(
+                                            top: 0,
+                                            right: 0,
+                                            child: IconButton.filled(
+                                              icon: Icon(Icons.close),
+                                              onPressed: () {
+                                                _imageV.value = null;
+                                              },
+                                              color: Colors.white,
+                                            ),
+                                          ),
+                                        ])));
                         },
                       ),
                       SizedBox(
@@ -331,30 +360,44 @@ void setType(String value) => setState(() {
                               // ),
                               onPressed: () {
                                 if (_formKey.currentState!.validate()) {
-                                  var statut = "ouvert";
                                   var prefecture = prefectureController.text;
                                   var chrono = 0;
+                                  // var statut = "ouvert";
                                   if (chronoController.text == "2 heures") {
                                     chrono = 2 * 3600;
-                                  } else {
+                                  } else if (chronoController.text ==
+                                      "24 heures") {
                                     chrono = 24 * 3600;
+                                  } else {
+                                    chrono = 0;
+                                    // statut = "clôturé";
                                   }
 
+                                  var statut = chrono == 0 ? "clôturé" : "ouvert";
                                   var code = codeController.text;
                                   var type = typeController.text;
-                                  var remarqueDeclaration= remarqueDeclarationController.text;
+                                  var remarqueDeclaration =
+                                      remarqueDeclarationController.text;
                                   // var horaire = horaireController.text;
                                   var horaire = DateTime.now();
+                                  var chrono2 =
+                                      DateTime.fromMillisecondsSinceEpoch(
+                                          horaire.millisecondsSinceEpoch +
+                                              chrono * 1000);
                                   // print(typeController.text);
+                                  // print("-------");
+                                  // print(DateTime.fromMillisecondsSinceEpoch(horaire.millisecondsSinceEpoch));
+                                  // print(DateTime.fromMillisecondsSinceEpoch(chrono2));
                                   addReclamation(
-                                     image: _imageV.value,
-                                      code :code,
+                                      image: _imageV.value,
+                                      code: code,
                                       statut: statut,
-                                      prefecture : prefecture,
-                                     remarqueDeclaration: remarqueDeclaration,
-                                      chrono : chrono,
-                                     horaire:  Timestamp.fromDate(horaire),
-                                      type :type);
+                                      prefecture: prefecture,
+                                      remarqueDeclaration: remarqueDeclaration,
+                                      chrono: chrono,
+                                      chrono2: chrono2,
+                                      horaire: Timestamp.fromDate(horaire),
+                                      type: type);
                                   Navigator.pop(context);
                                   _imageV.value = null;
                                 }

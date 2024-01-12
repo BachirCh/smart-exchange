@@ -4,7 +4,7 @@ import 'package:intl/intl.dart';
 // import 'package:location/location.dart';
 import './reclamation.dart';
 import 'card.dart';
-import 'package:geolocator/geolocator.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 class ConstatList extends StatefulWidget {
   final String statut;
@@ -22,7 +22,6 @@ class _ConstatListState extends State<ConstatList> {
   void initState() {
     super.initState();
     // LocationService().requestPermission();
-    print(widget.statut);
     fetchRecords();
     FirebaseFirestore.instance
         .collection("reclamation")
@@ -42,14 +41,12 @@ class _ConstatListState extends State<ConstatList> {
     // });
   }
 
-  getLocation() async {
-    await Geolocator.checkPermission();
-    await Geolocator.requestPermission();
-    Position position = await Geolocator.getCurrentPosition(
-        desiredAccuracy: LocationAccuracy.high);
-    print('---------------------------------');
-    print(position);
-  }
+  // getLocation() async {
+  //   await Geolocator.checkPermission();
+  //   await Geolocator.requestPermission();
+  //   Position position = await Geolocator.getCurrentPosition(
+  //       desiredAccuracy: LocationAccuracy.high);
+  // }
 
   fetchRecords() async {
     final records = await FirebaseFirestore.instance
@@ -70,9 +67,12 @@ class _ConstatListState extends State<ConstatList> {
               prefecture: reclamation.data()['prefecture'],
               horaire: reclamation.data()['horaire'],
               chrono: reclamation.data()['chrono'],
+              chrono2: reclamation.data()['chrono2'],
+              horaireTraitement: reclamation.data()['horaireTraitement'],
               imageUrl: reclamation.data()['imageUrl'],
             ))
-        .toList()..sort((a, b) => b.horaire!.compareTo(a.horaire!));
+        .toList()
+      ..sort((a, b) => b.horaire!.compareTo(a.horaire!));
     if (mounted) {
       setState(() {
         reclamations = list;
@@ -91,31 +91,71 @@ class _ConstatListState extends State<ConstatList> {
             SizedBox(
               height: 8,
             ),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20.0),
-              child: Text("${reclamations.length} résultats"),
-            ),
-            SizedBox(
-              height: 800,
-              child: ListView.builder(
-                itemCount: reclamations.length,
-                itemBuilder: (context, index) {
-                  return ListTile(
-                    title: ConstatCard(
-                      id: reclamations[index].id,
-                      code: reclamations[index].code,
-                      horaire: DateFormat('dd/MM/yyyy, hh:mm')
-                          .format(reclamations[index].horaire!.toDate()),
-                      prefecture: reclamations[index].prefecture,
-                      statut: reclamations[index].statut,
-                      type: 'Accident',
-                      chrono: reclamations[index].chrono,
-                      imageUrl: reclamations[index].imageUrl,
+
+            if (reclamations.isEmpty)
+              Center(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    SizedBox(
+                      height: 40,
                     ),
-                  );
-                },
+                    SvgPicture.asset(
+                      'assets/images/empty.svg',
+                      width: 150,
+                    ),
+                    SizedBox(
+                      height: 20,
+                    ),
+                    Text(
+                      'Aucun résultat',
+                      style: Theme.of(context).textTheme.bodyLarge!.copyWith(
+                            fontWeight: FontWeight.w600,
+                          ),
+                    ),
+                  ],
+                ),
+              )
+            else
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                    child: Text("${reclamations.length} résultats"),
+                  ),
+                  SizedBox(
+                    height: 800,
+                    child: ListView.builder(
+                      itemCount: reclamations.length,
+                      itemBuilder: (context, index) {
+                        return ListTile(
+                          title: ConstatCard(
+                            id: reclamations[index].id,
+                            code: reclamations[index].code,
+                            horaire: DateFormat('dd/MM/yyyy, HH:mm')
+                                .format(reclamations[index].horaire!.toDate()),
+                            chrono2: DateFormat('dd/MM/yyyy, HH:mm')
+                                .format(reclamations[index].chrono2!.toDate()),
+                            horaireTraitement: DateFormat('dd/MM/yyyy, HH:mm')
+                                .format(reclamations[index]
+                                        .horaireTraitement
+                                        ?.toDate() ??
+                                    DateTime.now()),
+                            prefecture: reclamations[index].prefecture,
+                            statut: reclamations[index].statut,
+                            type: 'Accident',
+                            chrono: reclamations[index].chrono,
+                            imageUrl: reclamations[index].imageUrl,
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                ],
               ),
-            ),
+
             // GetUserName('O4CxCbYmJZG9wUxvtV5w'),
             // MyWidget(),
           ],

@@ -1,13 +1,52 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/svg.dart';
+import 'package:intl/intl.dart';
+import 'package:smart_reclam/utils.dart';
+
+import '../components/reclamation.dart';
 
 class ConstatTraitement extends StatelessWidget {
-  final String status;
-  const ConstatTraitement({super.key, required this.status});
+  final Reclamation reclamation;
+  
+   ConstatTraitement({super.key, required this.reclamation});
 
+    // Reclamation reclamation = Reclamation(
+    final  String placemark = '';
+
+  // fetchRecord() async {
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      floatingActionButton: FloatingActionButton.extended(
+    return
+    reclamation.chrono == 0 && reclamation.statut == "clôturé" ?
+    Scaffold(
+      body:   Center(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    SizedBox(
+                      height: 40,
+                    ),
+                    SvgPicture.asset(
+                      'assets/images/empty.svg',
+                      width: 150,
+                    ),
+                    SizedBox(
+                      height: 20,
+                    ),
+                    Text(
+                      'Ce constat a été clôturé sans traitement.',
+                      style: Theme.of(context).textTheme.bodyLarge!.copyWith(
+                            fontWeight: FontWeight.w600,
+                          ),
+                    ),
+                  ],
+                ),
+              ))
+      :
+     Scaffold(
+      floatingActionButton: 
+      reclamation.statut == "traité" ? FloatingActionButton.extended(
         onPressed: () {
           showAlertDialog(context);
         },
@@ -17,10 +56,10 @@ class ConstatTraitement extends StatelessWidget {
           style: TextStyle(color: Colors.white),
         ),
         // icon: Icon(Icons.camera, color: Colors.white,),
-      ),
+      ) : SizedBox(),
       body: SingleChildScrollView(
         child: Padding(
-          padding: EdgeInsets.all(8),
+          padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.start,
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -31,7 +70,7 @@ class ConstatTraitement extends StatelessWidget {
               Row(
                 children: [
                   Text(
-                    '1GHCZ-0413223',
+                    reclamation.code,
                     style: Theme.of(context).textTheme.bodyLarge!.copyWith(
                           fontWeight: FontWeight.w600,
                         ),
@@ -39,19 +78,19 @@ class ConstatTraitement extends StatelessWidget {
                   SizedBox(
                     width: 4,
                   ),
-                  if (status == 'ouvert')
+                  if (reclamation.statut == 'ouvert')
                     Badge(
                       label: Text('ouvert'),
                       backgroundColor: Colors.amber[800],
                     )
-                  else if (status == 'Traité')
+                  else if (reclamation.statut== 'traité')
                     Badge(
-                      label: Text('Traité'),
+                      label: Text('traité'),
                       backgroundColor: Colors.green[800],
                     )
-                  else if (status == 'Clôturé')
+                  else if (reclamation.statut== 'clôturé')
                     Badge(
-                      label: Text('Clôturé'),
+                      label: Text('clôturé'),
                       backgroundColor: Colors.grey[800],
                     ),
                 ],
@@ -70,7 +109,7 @@ class ConstatTraitement extends StatelessWidget {
                 height: 4,
               ),
               Text(
-                'Maintien des déchets verts sur la voie urbaine.',
+                reclamation.remarqueTraitement ?? '-',
                 style: Theme.of(context).textTheme.bodyMedium,
               ),
               SizedBox(
@@ -87,24 +126,31 @@ class ConstatTraitement extends StatelessWidget {
                 height: 4,
               ),
               Text(
-                '21/12/2023, 13:01',
+               DateFormat('dd/MM/yyyy, HH:mm')
+                    .format(reclamation.horaireTraitement?.toDate() ?? DateTime.now()),
                 style: Theme.of(context).textTheme.bodyMedium,
               ),
               SizedBox(
                 height: 12,
               ),
-              Image(image: AssetImage('assets/images/photo1.jpeg')),
-              SizedBox(
-                height: 12,
+               if (reclamation.imageUrl != null && reclamation.imageUrl!.isNotEmpty)
+              Container(
+                clipBehavior: Clip.hardEdge,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(16.0),
+                ),
+                child: Image(
+                  image: NetworkImage(reclamation.imageTraitementUrl!),
+                  fit: BoxFit.cover,
+                  
+                ),
               ),
-              Image(image: AssetImage('assets/images/photo1.jpeg')),
             ],
           ),
         ),
       ),
     );
   }
-}
 
 showAlertDialog(BuildContext context) {
 
@@ -115,9 +161,11 @@ showAlertDialog(BuildContext context) {
       Navigator.pop(context);
     },
   );
-  Widget continueButton = TextButton(
+  Widget continueButton = ElevatedButton(
     child: Text("Clôturer"),
     onPressed:  () {
+      var horaireCloture = DateTime.now();
+      cloturerReclamation(reclamationId: reclamation.id, horaireCloture: horaireCloture);
       Navigator.pop(context);
     },
   );
@@ -125,11 +173,12 @@ showAlertDialog(BuildContext context) {
   // set up the AlertDialog
   AlertDialog alert = AlertDialog(
     surfaceTintColor: Colors.white,
+    actionsAlignment: MainAxisAlignment.start,
     title: Text("Clôturer constat"),
     content: Text("Êtes-vous sûr de vouloir clôturer ce constat ?"),
     actions: [
-      cancelButton,
       continueButton,
+      cancelButton,
     ],
   );
 
@@ -140,4 +189,5 @@ showAlertDialog(BuildContext context) {
       return alert;
     },
   );
+}
 }
