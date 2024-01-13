@@ -76,7 +76,7 @@ expirerReclamation({reclamationId}) async {
       .collection('reclamation')
       .doc(reclamationId)
       .update({
-    'statut': 'clôturé',
+    'statut': 'expiré',
   });
 }
 
