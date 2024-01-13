@@ -3,9 +3,8 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:smart_reclam/components/dropdown.dart';
-import '../components/dropdown2.dart';
 import '../utils.dart';
-import '../components/constat_list.dart';
+import 'reclamations_list.dart';
 import 'package:image_picker/image_picker.dart';
 
 class MyHomePage extends StatefulWidget {

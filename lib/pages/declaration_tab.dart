@@ -77,7 +77,7 @@ class ConstatDeclaration extends StatelessWidget {
                   else if (reclamation.statut == 'clôturé')
                     Badge(
                       label: Text('clôturé'),
-                      backgroundColor: Colors.grey[800],
+                      backgroundColor: Colors.red[800],
                     ),
                 ],
               ),
@@ -333,7 +333,7 @@ class ConstatDeclaration extends StatelessWidget {
                                       remarqueTraitementController.text;
                                   // var horaire = horaireController.text;
                                   var horaireTraitement = DateTime.now();
-                            
+
                                   traiterReclamation(
                                     reclamationId: reclamation.id,
                                     imageTraitement: _imageVTraitement.value,

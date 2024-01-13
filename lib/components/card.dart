@@ -1,6 +1,6 @@
 // import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import './constat_details.dart';
+import '../pages/reclamation_tabs.dart';
 
 class ConstatCard extends StatelessWidget {
   final String statut;
@@ -107,6 +107,11 @@ class ConstatCard extends StatelessWidget {
                             Badge(
                               label: Text('clôturé'),
                               backgroundColor: Colors.grey[800],
+                            )
+                          else if (statut == 'expiré')
+                            Badge(
+                              label: Text('expiré'),
+                              backgroundColor: Colors.red[800],
                             ),
                         ],
                       ),

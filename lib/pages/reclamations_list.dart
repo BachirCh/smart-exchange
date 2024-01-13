@@ -2,8 +2,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 // import 'package:location/location.dart';
-import './reclamation.dart';
-import 'card.dart';
+import '../components/reclamation.dart';
+import '../components/card.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 class ConstatList extends StatefulWidget {

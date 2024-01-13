@@ -1,10 +1,10 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:geocoding/geocoding.dart';
-import '../pages/declaration.dart';
-import '../pages/traitement.dart';
-import '../pages/cloture.dart';
-import 'reclamation.dart';
+import 'declaration_tab.dart';
+import 'traitement_tab.dart';
+import 'cloture_tab.dart';
+import '../components/reclamation.dart';
 
 class ConstatPage extends StatefulWidget {
   final String type;
@@ -46,7 +46,6 @@ class _ConstatPageState extends State<ConstatPage> {
         .get();
     mapRecord(record);
     getPlacemark(reclamation);
-
   }
 
   mapRecord(DocumentSnapshot<Map<String, dynamic>> record) async {
@@ -97,49 +96,49 @@ class _ConstatPageState extends State<ConstatPage> {
           },
         ),
       ),
-      body: 
-      reclamation.statut == "ouvert" ? DefaultTabController(
-        length: 1,
-        child: Scaffold(
-          appBar: TabBar(
-            tabs: [
-              Tab(text: 'Déclaration'),
-            ],
-          ),
-          body: TabBarView(
-            children: [
-              ConstatDeclaration(
-                reclamation: reclamation,
-                placemark: placemark,
-              ),
-             
-            ],
-          ),
-        ),
-      ) :
-      reclamation.statut == "traité" ? DefaultTabController(
-        length: 2,
-        child: Scaffold(
-          appBar: TabBar(
-            tabs: [
-              Tab(text: 'Déclaration'),
-              Tab(text: 'Traitement'),
-            ],
-          ),
-          body: TabBarView(
-            children: [
-              ConstatDeclaration(
-                reclamation: reclamation,
-                placemark: placemark,
-              ),
-              ConstatTraitement(
-                reclamation: reclamation,
-              ),
-            ],
-          ),
-        ),
-      ) :
-      DefaultTabController(
+      body:
+          // reclamation.statut == "ouvert" ? DefaultTabController(
+          //   length: 1,
+          //   child: Scaffold(
+          //     appBar: TabBar(
+          //       tabs: [
+          //         Tab(text: 'Déclaration'),
+          //       ],
+          //     ),
+          //     body: TabBarView(
+          //       children: [
+          //         ConstatDeclaration(
+          //           reclamation: reclamation,
+          //           placemark: placemark,
+          //         ),
+
+          //       ],
+          //     ),
+          //   ),
+          // ) :
+          // reclamation.statut == "traité" ? DefaultTabController(
+          //   length: 2,
+          //   child: Scaffold(
+          //     appBar: TabBar(
+          //       tabs: [
+          //         Tab(text: 'Déclaration'),
+          //         Tab(text: 'Traitement'),
+          //       ],
+          //     ),
+          //     body: TabBarView(
+          //       children: [
+          //         ConstatDeclaration(
+          //           reclamation: reclamation,
+          //           placemark: placemark,
+          //         ),
+          //         ConstatTraitement(
+          //           reclamation: reclamation,
+          //         ),
+          //       ],
+          //     ),
+          //   ),
+          // ) :
+          DefaultTabController(
         length: 3,
         child: Scaffold(
           appBar: TabBar(
