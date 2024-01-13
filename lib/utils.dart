@@ -71,6 +71,14 @@ cloturerReclamation({reclamationId, horaireCloture}) async {
     'horaireCloture': 'horaireCloture',
   });
 }
+expirerReclamation({reclamationId}) async {
+  FirebaseFirestore.instance
+      .collection('reclamation')
+      .doc(reclamationId)
+      .update({
+    'statut': 'clôturé',
+  });
+}
 
 getLocation() async {
   await Geolocator.checkPermission();

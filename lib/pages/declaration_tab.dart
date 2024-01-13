@@ -77,6 +77,11 @@ class ConstatDeclaration extends StatelessWidget {
                   else if (reclamation.statut == 'clôturé')
                     Badge(
                       label: Text('clôturé'),
+                      backgroundColor: Colors.grey[800],
+                    )
+                  else if (reclamation.statut == 'expiré')
+                    Badge(
+                      label: Text('expiré'),
                       backgroundColor: Colors.red[800],
                     ),
                 ],

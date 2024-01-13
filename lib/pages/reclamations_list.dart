@@ -1,6 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 // import 'package:location/location.dart';
 import '../components/reclamation.dart';
 import '../components/card.dart';
@@ -134,15 +133,9 @@ class _ConstatListState extends State<ConstatList> {
                           title: ConstatCard(
                             id: reclamations[index].id,
                             code: reclamations[index].code,
-                            horaire: DateFormat('dd/MM/yyyy, HH:mm')
-                                .format(reclamations[index].horaire!.toDate()),
-                            chrono2: DateFormat('dd/MM/yyyy, HH:mm')
-                                .format(reclamations[index].chrono2!.toDate()),
-                            horaireTraitement: DateFormat('dd/MM/yyyy, HH:mm')
-                                .format(reclamations[index]
-                                        .horaireTraitement
-                                        ?.toDate() ??
-                                    DateTime.now()),
+                            horaire: reclamations[index].horaire ?? Timestamp.fromDate(DateTime.now()),
+                            chrono2: reclamations[index].chrono2 ?? Timestamp.fromDate(DateTime.now()),
+                            horaireTraitement: reclamations[index].horaireTraitement,
                             prefecture: reclamations[index].prefecture,
                             statut: reclamations[index].statut,
                             type: 'Accident',

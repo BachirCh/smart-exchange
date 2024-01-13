@@ -36,7 +36,7 @@ class _MyAppState extends State<MyApp> {
           // Creates an instance of FirebaseUILocalizationDelegate with overridden labels
           // FirebaseUILocalizations.withDefaultOverrides(const LabelOverrides()),
 
-          // Delegates below take care of built-in flutter widgets
+          // Delegates below take care of built-in flutter widgets@
           GlobalMaterialLocalizations.delegate,
           GlobalCupertinoLocalizations.delegate,
           GlobalWidgetsLocalizations.delegate,

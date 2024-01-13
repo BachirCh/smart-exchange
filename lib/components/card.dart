@@ -1,20 +1,23 @@
 // import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+import 'package:smart_reclam/utils.dart';
 import '../pages/reclamation_tabs.dart';
 
-class ConstatCard extends StatelessWidget {
+class ConstatCard extends StatefulWidget {
   final String statut;
   final String type;
   final String code;
-  final String horaire;
-  final String? horaireTraitement;
-  final String chrono2;
+  final Timestamp horaire;
+  final Timestamp? horaireTraitement;
+  final Timestamp chrono2;
   final String? prefecture;
   final int? chrono;
   final String id;
   final String? imageUrl;
 
-  const ConstatCard(
+  ConstatCard(
       {super.key,
       required this.id,
       required this.statut,
@@ -27,13 +30,33 @@ class ConstatCard extends StatelessWidget {
       this.chrono,
       this.imageUrl});
 
+      getDiff() {
+        int diff =
+        chrono2.toDate().difference(horaire.toDate()).inMinutes;
+        if (diff <=0 && statut == 'ouvert') {
+          expirerReclamation(reclamationId: id);
+        }
+      }
+
+  setState() {
+    int diff =
+        horaireTraitement?.toDate().difference(horaire.toDate()).inMinutes ?? 0;
+        print("------------ $diff");
+  }
+
+  @override
+  State<ConstatCard> createState() => _ConstatCardState();
+}
+
+class _ConstatCardState extends State<ConstatCard> {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () => Navigator.push(
         context,
         MaterialPageRoute(
-            builder: (context) => ConstatPage(type: type, id: id)),
+            builder: (context) =>
+                ConstatPage(type: widget.type, id: widget.id)),
       ),
       child: Card(
         margin: EdgeInsets.zero,
@@ -52,14 +75,14 @@ class ConstatCard extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.start,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
-              if (imageUrl != null && imageUrl!.isNotEmpty)
+              if (widget.imageUrl != null && widget.imageUrl!.isNotEmpty)
                 Container(
                   clipBehavior: Clip.hardEdge,
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(12.0),
                   ),
                   child: Image(
-                    image: NetworkImage(imageUrl!),
+                    image: NetworkImage(widget.imageUrl!),
                     fit: BoxFit.cover,
                     height: 150,
                     width: 120,
@@ -82,7 +105,7 @@ class ConstatCard extends StatelessWidget {
                       Row(
                         children: [
                           Text(
-                            code,
+                            widget.code,
                             style:
                                 Theme.of(context).textTheme.bodyLarge!.copyWith(
                                       fontWeight: FontWeight.w600,
@@ -93,22 +116,22 @@ class ConstatCard extends StatelessWidget {
                             width: 4,
                           ),
 
-                          if (statut == 'ouvert')
+                          if (widget.statut == 'ouvert')
                             Badge(
                               label: Text('ouvert'),
                               backgroundColor: Colors.amber[800],
                             )
-                          else if (statut == 'traité')
+                          else if (widget.statut == 'traité')
                             Badge(
                               label: Text('traité'),
                               backgroundColor: Colors.green[800],
                             )
-                          else if (statut == 'clôturé')
+                          else if (widget.statut == 'clôturé')
                             Badge(
                               label: Text('clôturé'),
                               backgroundColor: Colors.grey[800],
                             )
-                          else if (statut == 'expiré')
+                          else if (widget.statut == 'expiré')
                             Badge(
                               label: Text('expiré'),
                               backgroundColor: Colors.red[800],
@@ -127,7 +150,7 @@ class ConstatCard extends StatelessWidget {
                           SizedBox(
                             width: 4,
                           ),
-                          Text(prefecture ?? ''),
+                          Text(widget.prefecture ?? ''),
                         ],
                       ),
                       SizedBox(
@@ -143,7 +166,8 @@ class ConstatCard extends StatelessWidget {
                           SizedBox(
                             width: 4,
                           ),
-                          Text('Déclaré le \n $horaire'),
+                          Text(
+                              "Déclaré le \n ${DateFormat('dd/MM/yyyy, HH:mm').format(widget.horaire.toDate())}"),
                         ],
                       ),
                       SizedBox(
@@ -159,8 +183,17 @@ class ConstatCard extends StatelessWidget {
                           SizedBox(
                             width: 4,
                           ),
-                          if (statut == 'ouvert') Text('À traiter avant le \n $chrono2')
-                          else if (statut == 'traité' || statut == 'clôturé') Text('Traité le \n $horaireTraitement'),
+                          if (widget.statut == 'ouvert')
+                            Text(
+                                'À traiter avant le \n ${DateFormat('dd/MM/yyyy, HH:mm').format(widget.chrono2.toDate())}')
+                          else if (widget.chrono == 0 ||
+                              widget.statut == 'clôturé')
+                            Text(
+                                'Traité le \n ${DateFormat('dd/MM/yyyy, HH:mm').format(widget.horaire.toDate())}')
+                          else if (widget.statut == 'traité' ||
+                              widget.statut == 'clôturé')
+                            Text(
+                                'Traité le \n ${DateFormat('dd/MM/yyyy, HH:mm').format(widget.horaireTraitement?.toDate() ?? DateTime.now())}'),
                           // else if (statut == 'clôturé') Text('Clôturé le \n $chrono2'),
                           // MyTimer(
                           //   chrono: chrono ?? 60,
