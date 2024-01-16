@@ -2,10 +2,9 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_ui_localizations/firebase_ui_localizations.dart';
 import 'package:flutter/material.dart';
-// import 'package:location/location.dart';
 import 'package:provider/provider.dart';
-import 'package:smart_reclam/firebase_options.dart';
-import 'package:smart_reclam/pages/homepage.dart';
+import 'package:smart_exchange/firebase_options.dart';
+import 'package:smart_exchange/pages/homepage.dart';
 
 import 'pages/login.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -13,8 +12,13 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
+      options: FirebaseOptions(
+          apiKey: "AIzaSyAyKk75Ij_KN-aNesXoMXedclwR7pY7GlQ",
+          authDomain: "smart-exchange-1.firebaseapp.com",
+          projectId: "smart-exchange-1",
+          storageBucket: "smart-exchange-1.appspot.com",
+          messagingSenderId: "301625153249",
+          appId: "1:301625153249:web:02b75a77aaeed777f209a0"));
   runApp(MyApp());
 }
 
@@ -33,26 +37,20 @@ class _MyAppState extends State<MyApp> {
       create: (context) => MyAppState(),
       child: MaterialApp(
         localizationsDelegates: [
-          // Creates an instance of FirebaseUILocalizationDelegate with overridden labels
-          // FirebaseUILocalizations.withDefaultOverrides(const LabelOverrides()),
-
-          // Delegates below take care of built-in flutter widgets@
           GlobalMaterialLocalizations.delegate,
           GlobalCupertinoLocalizations.delegate,
           GlobalWidgetsLocalizations.delegate,
-
-          // This delegate is required to provide the labels that are not overridden by LabelOverrides
           FirebaseUILocalizations.delegate,
         ],
         supportedLocales: <Locale>[
-          Locale("en"), // English  
-          Locale('fr'), // English
+          Locale("en"),
+          Locale('fr'),
         ],
-        
-        title: 'smart_reclam',
+
+        title: 'Smart Exchange',
         theme: ThemeData(
           useMaterial3: true,
-          colorScheme: ColorScheme.fromSeed(seedColor: Colors.green),
+          colorScheme: ColorScheme.fromSeed(seedColor: Colors.indigo),
           inputDecorationTheme: InputDecorationTheme(
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(8),
@@ -65,12 +63,12 @@ class _MyAppState extends State<MyApp> {
               borderSide: BorderSide(color: Colors.grey, width: 1.0),
             ),
             focusedBorder: OutlineInputBorder(
-              borderSide: BorderSide(color: Color(0xFF039754), width: 2.0),
+              borderSide: BorderSide(color: Colors.indigo, width: 2.0),
             ),
           ),
           elevatedButtonTheme: ElevatedButtonThemeData(
             style: ElevatedButton.styleFrom(
-              backgroundColor: Color(0xFF039754),
+              backgroundColor: Colors.indigo,
               foregroundColor: Colors.white,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(8),
@@ -85,17 +83,12 @@ class _MyAppState extends State<MyApp> {
               ),
             ),
           ),
-          listTileTheme: ListTileThemeData(
-            contentPadding: EdgeInsets.symmetric(
-              vertical: 0,
-              horizontal: 16,
-            ),
-          ),
+         
         ),
         initialRoute:
-            FirebaseAuth.instance.currentUser == null ? '/sign-in' : '/home',
+            FirebaseAuth.instance.currentUser == null ? '/' : '/home',
         routes: {
-          '/sign-in': (context) => Login(),
+          '/': (context) => Login(),
           '/home': (context) => MyHomePage(),
         },
         // home: Login(),
@@ -107,4 +100,3 @@ class _MyAppState extends State<MyApp> {
 }
 
 class MyAppState extends ChangeNotifier {}
-

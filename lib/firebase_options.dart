@@ -21,11 +21,20 @@ class DefaultFirebaseOptions {
     }
     switch (defaultTargetPlatform) {
       case TargetPlatform.android:
-        return android;
+        throw UnsupportedError(
+          'DefaultFirebaseOptions have not been configured for android - '
+          'you can reconfigure this by running the FlutterFire CLI again.',
+        );
       case TargetPlatform.iOS:
-        return ios;
+        throw UnsupportedError(
+          'DefaultFirebaseOptions have not been configured for ios - '
+          'you can reconfigure this by running the FlutterFire CLI again.',
+        );
       case TargetPlatform.macOS:
-        return macos;
+        throw UnsupportedError(
+          'DefaultFirebaseOptions have not been configured for macos - '
+          'you can reconfigure this by running the FlutterFire CLI again.',
+        );
       case TargetPlatform.windows:
         throw UnsupportedError(
           'DefaultFirebaseOptions have not been configured for windows - '
@@ -44,37 +53,10 @@ class DefaultFirebaseOptions {
   }
 
   static const FirebaseOptions web = FirebaseOptions(
-    apiKey: 'AIzaSyA9OwSpyeSIqlZfsrIU40a8Wz1x-7rj-Dw',
-    appId: '1:559631361002:web:5ebbc97bb8561068e10893',
-    messagingSenderId: '559631361002',
-    projectId: 'smart-reclam',
-    authDomain: 'smart-reclam.firebaseapp.com',
-    storageBucket: 'smart-reclam.appspot.com',
-  );
-
-  static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'AIzaSyAKrdkoRyADzQGKGDwqCTIAXZTvaZOPprI',
-    appId: '1:559631361002:android:d06f870cc68cbb94e10893',
-    messagingSenderId: '559631361002',
-    projectId: 'smart-reclam',
-    storageBucket: 'smart-reclam.appspot.com',
-  );
-
-  static const FirebaseOptions ios = FirebaseOptions(
-    apiKey: 'AIzaSyCfQvFSR6tjRaS8llrnwZr2zt_KfxLqAp4',
-    appId: '1:559631361002:ios:f2b151a54e106b32e10893',
-    messagingSenderId: '559631361002',
-    projectId: 'smart-reclam',
-    storageBucket: 'smart-reclam.appspot.com',
-    iosBundleId: 'com.example.flutterApplication2',
-  );
-
-  static const FirebaseOptions macos = FirebaseOptions(
-    apiKey: 'AIzaSyCfQvFSR6tjRaS8llrnwZr2zt_KfxLqAp4',
-    appId: '1:559631361002:ios:0e3459d65930055fe10893',
-    messagingSenderId: '559631361002',
-    projectId: 'smart-reclam',
-    storageBucket: 'smart-reclam.appspot.com',
-    iosBundleId: 'com.example.flutterApplication2.RunnerTests',
-  );
+      apiKey: "AIzaSyAyKk75Ij_KN-aNesXoMXedclwR7pY7GlQ",
+      authDomain: "smart-exchange-1.firebaseapp.com",
+      projectId: "smart-exchange-1",
+      storageBucket: "smart-exchange-1.appspot.com",
+      messagingSenderId: "301625153249",
+      appId: "1:301625153249:web:02b75a77aaeed777f209a0");
 }

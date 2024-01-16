@@ -1,11 +1,12 @@
+import 'dart:js' as js;
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter/foundation.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:smart_reclam/components/dropdown.dart';
+import 'package:intl/intl.dart';
+import '../components/my_file.dart';
+import '../components/dropdown.dart';
 import '../utils.dart';
-import 'reclamations_list.dart';
-import 'package:image_picker/image_picker.dart';
 
 class MyHomePage extends StatefulWidget {
   @override
@@ -13,39 +14,68 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
+  List<MyFile> files = [];
+
+  fetchRecords({String? query}) async {
+    FirebaseFirestore.instance
+        .collection('files')
+        .where('name', isGreaterThanOrEqualTo: query ?? '')
+        .snapshots()
+        .listen((records) {
+      mapRecords(records);
+    });
+  }
+
+  mapRecords(QuerySnapshot<Map<String, dynamic>> records) async {
+    var list = records.docs
+        .map((file) => MyFile(
+              id: file.id,
+              type: file.data()['type'],
+              name: file.data()['name'],
+              fileUrl: file.data()['fileUrl'],
+              dateAdded: file.data()['dateAdded'].toDate(),
+            ))
+        .toList();
+    if (mounted) {
+      setState(() {
+        files = list;
+      });
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    // LocationService().requestPermission();
+    fetchRecords();
+    // FirebaseFirestore.instance
+    //     .collection("files")
+    //     // .orderBy("horaire", descending: true)
+    //     .snapshots()
+    //     .listen((records) {
+    //   mapRecords(records);
+    // });
+  }
+
   final _formKey = GlobalKey<FormState>();
   final userRole = getUserRole();
 
-  final _imageV = ValueNotifier<Uint8List?>(null);
+  final _fileV = ValueNotifier<PlatformFile?>(null);
 
-
-  void selectImage(source) async {
-    Uint8List img = await pickImage(source);
-    _imageV.value = img;
+  void selectFile() async {
+    PlatformFile? file = await pickFile();
+    _fileV.value = file;
   }
 
   @override
   Widget build(BuildContext context) {
+    String searchKey = "";
+
     return Scaffold(
+      // floatingActionButton: ElevatedButton(onPressed: (){}, child: Text("Ajouter document"), ),
       appBar: AppBar(
-        titleSpacing: 50,
-        leading: Column(
-          children: [
-            SvgPicture.asset(
-              'assets/images/face.svg',
-              width: 24,
-            ),
-            FutureBuilder(
-                future: getUserRole(),
-                builder: (context, snapshot) {
-                  if (snapshot.hasData) {
-                    return Text(snapshot.data == "agent" ? "Agent" : "Admin", style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500),);
-                  } else {
-                    return SizedBox();
-                  }
-                }),
-          ],
-        ),
+        centerTitle: true,
+
         // leading: Text(userRole == "agent" ? "Agent" : "Admin"),
         actions: [
           IconButton(
@@ -59,66 +89,86 @@ class _MyHomePageState extends State<MyHomePage> {
             },
           ),
         ],
-        title: Image.asset(
-          'assets/images/logo.png',
-          height: 32,
+        title: Row(
+          children: [
+            SvgPicture.asset(
+              'assets/images/favicon.svg',
+              height: 32,
+            ),
+            SizedBox(width: 12),
+            Text('Smart Exchange',
+                style: Theme.of(context).textTheme.titleLarge),
+          ],
         ),
       ),
 
-      body: DefaultTabController(
-        length: 4,
-        child: Scaffold(
-          appBar: TabBar(
-            tabs: [
-              Tab(text: 'Ouverts'),
-              Tab(text: 'Traités'),
-              Tab(text: 'Clôturés'),
-              Tab(text: 'Expirés'),
-            ],
-          ),
-          body: TabBarView(
-            children: [
-              ConstatList(
-                statut: 'ouvert',
-                type: 'Constat',
-              ),
-              ConstatList(
-                statut: 'traité',
-                type: 'Constat',
-              ),
-              ConstatList(
-                statut: 'clôturé',
-                type: 'Constat',
-              ),
-              ConstatList(
-                statut: 'expiré',
-                type: 'Constat',
-              ),
-            ],
-          ),
-          floatingActionButton: FutureBuilder(
-              future: getUserRole(),
-              builder: (context, snapshot) {
-                if (snapshot.hasData && snapshot.data == 'admin') {
-                  return FloatingActionButton.extended(
-                    onPressed: () {
-                      getLocation();
-                      showReclamationDialog();
+      body: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 40),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Row(
+              // crossAxisAlignment: CrossAxisAlignment.stretch,
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Container(
+                  width: 400,
+                  decoration: ShapeDecoration(
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    color: Colors.white,
+                  ),
+                  child: SearchBar(
+                    shape: MaterialStateProperty.all(RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),),
+                    side: MaterialStatePropertyAll(BorderSide(color: Colors.grey.shade400, width: 1.0)),
+                    elevation: MaterialStateProperty.all<double>(0),
+                    leading: Icon(Icons.search, color: Colors.grey.shade400,),
+                    backgroundColor: MaterialStateProperty.all<Color>(Colors.white),
+                    // overlayColor: MaterialStateProperty.all<Color>(Colors.grey),
+                    // surfaceTintColor:
+                    //     MaterialStateProperty.all<Color>(Colors.grey),
+                        
+                    hintText: "Recherche",
+                    padding: const MaterialStatePropertyAll<EdgeInsets>(
+                        EdgeInsets.symmetric(horizontal: 16.0)),
+                    onTap: () {},
+                    onChanged: (query) {
+                      setState(() {
+                        searchKey = query;
+                      });
+                      fetchRecords(query: searchKey);
                     },
-                    backgroundColor: Theme.of(context).colorScheme.primary,
-                    label: const Text(
-                      'Nouveau constat',
-                      style: TextStyle(color: Colors.white),
-                    ),
-                    icon: const Icon(
-                      Icons.add,
-                      color: Colors.white,
-                    ),
-                  );
-                } else {
-                  return SizedBox();
-                }
-              }),
+                  ),
+                ),
+                
+                ElevatedButton(
+                    onPressed: () {
+                      addFileDialog();
+                    },
+                    child: Text('Ajouter un document'))
+              ],
+            ),
+            SizedBox(height: 20),
+            // TextField(onChanged: (value) {
+            //   setState(() {
+            //     searchKey = value;
+            //   });
+            //   fetchRecords(query: searchKey);
+            // }),
+            // SizedBox(height: 20),
+
+            SizedBox(height: 20),
+            Text('${files.length} résultats'),
+            SizedBox(height: 20),
+            Material(
+                elevation: 2,
+                clipBehavior: Clip.hardEdge,
+                borderRadius: BorderRadius.all(Radius.circular(12)),
+                child: _buildBody(context, searchKey)),
+          ],
         ),
       ),
 
@@ -126,37 +176,54 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 
-  showReclamationDialog() {
-    var codeController = TextEditingController();
-    codeController.text =
-        "SR-${(DateTime.now().toUtc().millisecondsSinceEpoch ~/ Duration.millisecondsPerMinute).toString()}";
+  Widget _buildBody(BuildContext context, searchKey) {
+    Stream streamQuery = FirebaseFirestore.instance
+        .collection('files')
+        .where('name', isGreaterThanOrEqualTo: searchKey)
+        .snapshots();
+    return StreamBuilder(
+        // stream: FirebaseFirestore.instance.collection('files').snapshots(),
+        stream: streamQuery,
+        builder: (context, snapshot) {
+          return DataTable(
+              decoration: BoxDecoration(
+                border: Border.all(color: Colors.grey.shade200),
+                borderRadius: BorderRadius.all(Radius.circular(12)),
+                color: Colors.white,
+              ),
+              columns: [
+                DataColumn(label: Text('Nom du document')),
+                DataColumn(label: Text('Type')),
+                DataColumn(label: Text('Ajouté le')),
+                DataColumn(label: SizedBox()),
+              ],
+              rows: _buildList(context, files)
+              //  _buildList(context, snapshot.data.documents)
+              );
+        });
+  }
 
-    var prefectureController = TextEditingController();
-    var chronoController = TextEditingController();
+  List<DataRow> _buildList(BuildContext context, List<MyFile> files) {
+    return files.map((file) => _buildListItem(context, file)).toList();
+  }
+
+  DataRow _buildListItem(BuildContext context, MyFile file) {
+    return DataRow(cells: [
+      DataCell(Text(file.name ?? '-')),
+      DataCell(Text(file.type)),
+      DataCell(Text(DateFormat('dd/MM/yyyy, HH:mm').format(file.dateAdded!))),
+      DataCell(TextButton.icon(
+          onPressed: (() => {
+                js.context.callMethod('open', [file.fileUrl])
+              }),
+          icon: Icon(Icons.download),
+          label: Text("Télécharger"))),
+    ]);
+  }
+
+  addFileDialog() {
     var typeController = TextEditingController();
-    var remarqueDeclarationController = TextEditingController();
-    typeController.text = 'Secteur non balayé ou collecté';
-    chronoController.text = '24 heures';
-    void changeChrono(String value) => setState(() {
-          if (value == 'Secteur non balayé ou collecté' ||
-              value == 'Points noirs non éradiqués' ||
-              value == 'Artères ou place non lavées' ||
-              value == 'Poubelle ou conteneur détérioré' ||
-              value == 'Véhicule pollué' ||
-              value == 'Terrains vagues avec déchets') {
-            chronoController.text = '24 heures';
-          } else if (value == 'Déchets laissés sur place' ||
-              value == 'Boulevard/rue/place non balayés' ||
-              value == 'Véhicule répandant des ordures') {
-            chronoController.text = '2 heures';
-          } else {
-            chronoController.text = 'Immediat';
-          }
-        });
-    void setType(String value) => setState(() {
-          typeController.text = value;
-          changeChrono(value);
-        });
+    typeController.text = 'Reporting annuel';
 
     showDialog(
         barrierDismissible: false,
@@ -167,237 +234,118 @@ class _MyHomePageState extends State<MyHomePage> {
               borderRadius: BorderRadius.circular(16),
             ),
             surfaceTintColor: Colors.white,
-            child: SingleChildScrollView(
+            child: Form(
+              key: _formKey,
               child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Form(
-                  key: _formKey,
-                  child: Column(
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.all(16.0),
-                        child: Text(
-                          "Ajouter un constat",
+                padding: const EdgeInsets.all(24.0),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        Text(
+                          "Ajouter un document",
                           style: Theme.of(context)
                               .textTheme
                               .bodyLarge!
                               .copyWith(fontWeight: FontWeight.w600),
                         ),
-                      ),
-                      SizedBox(
-                        height: 16,
-                      ),
-                      TextFormField(
-                        controller: codeController,
-                        enabled: false,
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'Veuillez entrer un code du constat';
-                          }
-                          return null;
-                        },
-                        decoration: InputDecoration(
-                          labelText: 'Code',
+                        SizedBox(
+                          height: 16,
                         ),
-                      ),
-                      SizedBox(
-                        height: 16,
-                      ),
-                      DropdownMenuExample(
-                        list: [
-                          "Aïn Chock",
-                          "Aïn Sebaâ-Hay Mohammadi",
-                          "Anfa",
-                          "Ben M'sick",
-                          "Bernoussi-Zenata",
-                          "Fida-Mers Sultan",
-                          "Hay Hassani",
-                          "Moulay Rachid"
-                        ],
-                        controller: prefectureController,
-                        label: "Préfecture",
-                      ),
-                      SizedBox(
-                        height: 16,
-                      ),
-                      DropdownMenuExample2(
-                        list: [
-                          "Secteur non balayé ou collecté",
-                          "Déchets laissés sur place",
-                          "Boulevard/rue/place non balayés",
-                          "Points noirs non éradiqués",
-                          "Déchêts non évacués",
-                          "Artères ou place non lavées",
-                          "Poubelle ou conteneur détérioré",
-                          "Véhicule pollué",
-                          "Véhicule répandant des ordures",
-                          "Véhicule laissant échapper lixiviat",
-                          "Véhicule présenté en mauvais état",
-                          "Terrains vagues avec déchets",
-                          "Non-respect du lieu de vidage",
-                        ],
-                        setType: setType,
-                        changeChrono: changeChrono,
-                        label: "Type de constat",
-                      ),
-                      SizedBox(
-                        height: 16,
-                      ),
-
-                      TextFormField(
-                        controller: chronoController,
-                        enabled: false,
-                        decoration: InputDecoration(
-                          labelText: 'Chrono',
+                        DropdownMenuExample(
+                          list: [
+                            "Reporting annuel",
+                            "Reporting mensuel",
+                            "Plan de collecte",
+                            "Evolution de tonnage",
+                          ],
+                          controller: typeController,
+                          label: "Type du document",
                         ),
-                        keyboardType: TextInputType.number,
-                      ),
-
-                      SizedBox(
-                        height: 16,
-                      ),
-                      TextField(
-                        controller: remarqueDeclarationController,
-                        minLines: 2,
-                        maxLines: 3,
-                        decoration: InputDecoration(
-                          floatingLabelAlignment: FloatingLabelAlignment.start,
-                          alignLabelWithHint: true,
-                          labelText: 'remarque',
+                        SizedBox(
+                          height: 16,
                         ),
-                      ),
-                      SizedBox(
-                        height: 16,
-                      ),
-
-                      // TextField(
-                      //   controller: horaireController,
-                      //   keyboardType: TextInputType.datetime,
-                      //   decoration: InputDecoration(
-                      //     hintText: 'Horaire',
-                      //   ),
-                      // ),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          OutlinedButton.icon(
-                            onPressed: () {
-                              selectImage(ImageSource.camera);
-                            },
-                            label: const Text('Camera'),
-                            icon: Icon(Icons.camera),
-                          ),
-                          SizedBox(
-                            width: 8,
-                          ),
-                          // OutlinedButton.icon(
-                          //   onPressed: () {
-                          //     selectImage(ImageSource.gallery);
-                          //   },
-                          //   label: const Text('Galerie'),
-                          //   icon: Icon(Icons.image),
-                          // ),
-                        ],
-                      ),
-                      SizedBox(
-                        height: 16,
-                      ),
-                      ValueListenableBuilder(
-                        valueListenable: _imageV,
-                        builder: (context, value, child) {
-                          return AnimatedSwitcher(
-                              duration: Duration(milliseconds: 300),
-                              child: Visibility(
-                                  visible: value != null,
-                                  key: ValueKey(value),
-                                  child: value == null
-                                      ? SizedBox()
-                                      : Stack(children: [
-                                          Image.memory(value),
-                                          Positioned(
-                                            top: 0,
-                                            right: 0,
-                                            child: IconButton.filled(
-                                              icon: Icon(Icons.close),
-                                              onPressed: () {
-                                                _imageV.value = null;
-                                              },
-                                              color: Colors.white,
-                                            ),
-                                          ),
-                                        ])));
-                        },
-                      ),
-                      SizedBox(
-                        height: 16,
-                      ),
-                      Row(
-                        children: [
-                          ElevatedButton(
-                              // style: ElevatedButton.styleFrom(
-                              //   minimumSize: const Size.fromHeight(25),
-                              // ),
-                              onPressed: () {
-                                if (_formKey.currentState!.validate() &&
-                                    _imageV.value != null) {
-                                  var prefecture = prefectureController.text;
-                                  var chrono = 0;
-                                  // var statut = "ouvert";
-                                  if (chronoController.text == "2 heures") {
-                                    chrono = 2 * 3600;
-                                  } else if (chronoController.text ==
-                                      "24 heures") {
-                                    chrono = 24 * 3600;
-                                  } else {
-                                    chrono = 0;
+                        OutlinedButton.icon(
+                          onPressed: () {
+                            selectFile();
+                          },
+                          label: const Text('Importer fichier'),
+                          icon: Icon(Icons.upload),
+                        ),
+                        SizedBox(
+                          height: 16,
+                        ),
+                        ValueListenableBuilder(
+                          valueListenable: _fileV,
+                          builder: (context, value, child) {
+                            return AnimatedSwitcher(
+                                duration: Duration(milliseconds: 300),
+                                child: Visibility(
+                                    visible: value != null,
+                                    key: ValueKey(value),
+                                    child: value == null
+                                        ? SizedBox()
+                                        : Column(
+                                            children: [
+                                              Row(
+                                                children: [
+                                                  Text(value.name),
+                                                  SizedBox(
+                                                    width: 12,
+                                                  ),
+                                                  IconButton(
+                                                      onPressed: () {
+                                                        _fileV.value = null;
+                                                      },
+                                                      icon: Icon(Icons.close))
+                                                ],
+                                              ),
+                                              SizedBox(
+                                                height: 12,
+                                              ),
+                                            ],
+                                          )));
+                          },
+                        ),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            ElevatedButton(
+                                onPressed: () {
+                                  if (_formKey.currentState!.validate() &&
+                                      _fileV.value != null) {
+                                    var type = typeController.text;
+                                    var dateAdded = DateTime.now();
+                                    addFile(
+                                        dateAdded:
+                                            Timestamp.fromDate(dateAdded),
+                                        type: type,
+                                        name: _fileV.value!.name,
+                                        file: _fileV.value!);
+                                    Navigator.pop(context);
+                                    _fileV.value = null;
                                   }
-
-                                  var statut =
-                                      chrono == 0 ? "clôturé" : "ouvert";
-                                  var code = codeController.text;
-                                  var type = typeController.text;
-                                  var remarqueDeclaration =
-                                      remarqueDeclarationController.text;
-                                  // var horaire = horaireController.text;
-                                  var horaire = DateTime.now();
-                                  var chrono2 =
-                                      DateTime.fromMillisecondsSinceEpoch(
-                                          horaire.millisecondsSinceEpoch +
-                                              chrono * 1000);
-                                  // print(typeController.text);
-                                  // print("-------");
-                                  // print(DateTime.fromMillisecondsSinceEpoch(horaire.millisecondsSinceEpoch));
-                                  // print(DateTime.fromMillisecondsSinceEpoch(chrono2));
-                                  addReclamation(
-                                      image: _imageV.value,
-                                      code: code,
-                                      statut: statut,
-                                      prefecture: prefecture,
-                                      remarqueDeclaration: remarqueDeclaration,
-                                      chrono: chrono,
-                                      chrono2: chrono2,
-                                      horaire: Timestamp.fromDate(horaire),
-                                      type: type);
+                                },
+                                child: Text('Enregistrer')),
+                            SizedBox(
+                              width: 12,
+                            ),
+                            TextButton(
+                                // style: ElevatedButton.styleFrom(
+                                //   minimumSize: const Size.fromHeight(25),
+                                // ),
+                                onPressed: () {
                                   Navigator.pop(context);
-                                  _imageV.value = null;
-                                }
-                              },
-                              child: Text('Enregistrer')),
-                          SizedBox(
-                            width: 12,
-                          ),
-                          TextButton(
-                              // style: ElevatedButton.styleFrom(
-                              //   minimumSize: const Size.fromHeight(25),
-                              // ),
-                              onPressed: () {
-                                Navigator.pop(context);
-                              },
-                              child: Text('Annuler')),
-                        ],
-                      )
-                    ],
-                  ),
+                                },
+                                child: Text('Annuler')),
+                          ],
+                        )
+                      ],
+                    ),
+                  ],
                 ),
               ),
             ),

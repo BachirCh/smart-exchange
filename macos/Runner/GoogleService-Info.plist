@@ -11,9 +11,9 @@
 	<key>BUNDLE_ID</key>
 	<string>com.example.flutterApplication2.RunnerTests</string>
 	<key>PROJECT_ID</key>
-	<string>smart-reclam</string>
+	<string>smart-exchange-1</string>
 	<key>STORAGE_BUCKET</key>
-	<string>smart-reclam.appspot.com</string>
+	<string>smart-exchange-1.appspot.com</string>
 	<key>IS_ADS_ENABLED</key>
 	<false></false>
 	<key>IS_ANALYTICS_ENABLED</key>
