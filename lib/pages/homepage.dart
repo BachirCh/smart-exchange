@@ -9,6 +9,24 @@ import '../components/dropdown.dart';
 import '../utils.dart';
 
 String filterQuery = "";
+String searchQuery = "";
+String sortDateOrder = "desc";
+
+setFilterQuery({search, filter}) {
+  final Stream<QuerySnapshot> filesStream = filter == ''
+      ? FirebaseFirestore.instance
+          .collection('files')
+          .where('name', isGreaterThanOrEqualTo: search.toLowerCase())
+          .where('name', isLessThanOrEqualTo: "${search.toLowerCase()}\uf8ff")
+          .snapshots()
+      : FirebaseFirestore.instance
+          .collection('files')
+          .where('name', isGreaterThanOrEqualTo: search.toLowerCase())
+          .where('name', isLessThanOrEqualTo: "${search.toLowerCase()}\uf8ff")
+          .where('type', isEqualTo: filter)
+          .snapshots();
+  return filesStream;
+}
 
 class MyHomePage extends StatefulWidget {
   @override
@@ -18,59 +36,9 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   List<MyFile> files = [];
 
-  fetchRecords({String? query}) async {
-    // if (query == null || query == "") {
-    //   FirebaseFirestore.instance
-    //       .collection('files')
-    //       .snapshots()
-    //       .listen((records) {
-    //     mapRecords(records);
-    //   });
-    // } else {
-
-    FirebaseFirestore.instance
-        .collection('files')
-        .where('name', isGreaterThanOrEqualTo: query?.toLowerCase())
-        .where('name', isLessThanOrEqualTo: "${query?.toLowerCase()}\uf8ff")
-        // .where('type', arrayContainsAny: ["Reporting annuel", 'it'])
-        // .where('type', isEqualTo: filterQuery)
-        .snapshots()
-        .listen((records) {
-      mapRecords(records);
-    });
-    // }
-  }
-
-  mapRecords(QuerySnapshot<Map<String, dynamic>> records) async {
-    var list = records.docs
-        .map((file) => MyFile(
-              id: file.id,
-              type: file.data()['type'],
-              name: file.data()['name'],
-              fileUrl: file.data()['fileUrl'],
-              entity: file.data()['entity'],
-              dateAdded: file.data()['dateAdded'].toDate(),
-            ))
-        .toList();
-    if (mounted) {
-      setState(() {
-        files = list;
-      });
-    }
-  }
-
   @override
   void initState() {
     super.initState();
-    // LocationService().requestPermission();
-    fetchRecords();
-    // FirebaseFirestore.instance
-    //     .collection("files")
-    //     // .orderBy("horaire", descending: true)
-    //     .snapshots()
-    //     .listen((records) {
-    //   mapRecords(records);
-    // });
   }
 
   final _formKey = GlobalKey<FormState>();
@@ -78,29 +46,26 @@ class _MyHomePageState extends State<MyHomePage> {
 
   final _fileV = ValueNotifier<PlatformFile?>(null);
 
-    List<String> filters = [
-      "Reporting annuel",
-      "Reporting mensuel",
-      "Plan de collecte",
-      "Evolution de tonnage",
-    ];
+  List<String> filters = [
+    "Reporting annuel",
+    "Reporting mensuel",
+    "Plan de collecte",
+    "Evolution de tonnage",
+  ];
 
   void selectFile() async {
     PlatformFile? file = await pickFile();
     _fileV.value = file;
   }
 
+  Icon icon = Icon(Icons.arrow_downward);
+  bool isAscending = false;
+
   @override
   Widget build(BuildContext context) {
-    String filter = "";
-    String searchKey = "";
-
     return Scaffold(
-      // floatingActionButton: ElevatedButton(onPressed: (){}, child: Text("Ajouter document"), ),
       appBar: AppBar(
         centerTitle: true,
-
-        // leading: Text(userRole == "agent" ? "Agent" : "Admin"),
         actions: [
           IconButton(
             icon: Icon(
@@ -125,7 +90,6 @@ class _MyHomePageState extends State<MyHomePage> {
           ],
         ),
       ),
-
       body: Padding(
         padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 40),
         child: Column(
@@ -166,11 +130,11 @@ class _MyHomePageState extends State<MyHomePage> {
                     padding: const MaterialStatePropertyAll<EdgeInsets>(
                         EdgeInsets.symmetric(horizontal: 16.0, vertical: 0.0)),
                     onTap: () {},
-                    onChanged: (query) {
+                    onChanged: (value) {
                       setState(() {
-                        searchKey = query;
+                        searchQuery = value;
                       });
-                      fetchRecords(query: searchKey);
+                      // fetchRecords(query: searchKey);
                     },
                   ),
                 ),
@@ -182,82 +146,43 @@ class _MyHomePageState extends State<MyHomePage> {
               ],
             ),
             SizedBox(height: 20),
-            Filter(),
-            SizedBox(height: 20),
-            // TextField(onChanged: (value) {
-            //   setState(() {
-            //     searchKey = value;
-            //   });
-            //   fetchRecords(query: searchKey);
-            // }),
-            // SizedBox(height: 20),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Filter(
+                  onFilterChanged: (String filter) {
+                    setState(() {
+                      filterQuery = filter;
+                    });
+                  },
+                ),
+                TextButton.icon(
+                  onPressed: () {
+                    setState(() {
+                      // Toggle the sorting order
+                      isAscending = !isAscending;
 
-            SizedBox(height: 20),
-            Text('${files.length} résultats'),
-            SizedBox(height: 20),
-            SingleChildScrollView(
-              // scrollDirection: Axis.horizontal,
-              child: Material(
-                  elevation: 2,
-                  clipBehavior: Clip.hardEdge,
-                  borderRadius: BorderRadius.all(Radius.circular(12)),
-                  child: SizedBox(
-                      // width: MediaQuery.of(context).size.width - 80,
-                      child: _buildBody(context, searchKey))),
+                      // Update the icon based on the sorting order
+                      icon = isAscending
+                          ? Icon(Icons.arrow_upward)
+                          : Icon(Icons.arrow_downward);
+
+                      sortDateOrder = isAscending ? "asc" : "desc";
+                    });
+                  },
+                  icon: icon,
+                  label: Text('Date'),
+                ),
+              ],
+            ),
+            MyDataTable(
+              filterQuery: filterQuery,
+              sortDateOrder: sortDateOrder,
             ),
           ],
         ),
       ),
-
-      /// Notifications page
     );
-  }
-
-  Widget _buildBody(BuildContext context, searchKey) {
-    Stream streamQuery = FirebaseFirestore.instance
-        .collection('files')
-        .where('name', isGreaterThanOrEqualTo: searchKey)
-        .snapshots();
-    return StreamBuilder(
-        // stream: FirebaseFirestore.instance.collection('files').snapshots(),
-        stream: streamQuery,
-        builder: (context, snapshot) {
-          return DataTable(
-              decoration: BoxDecoration(
-                border: Border.all(color: Colors.grey.shade200),
-                borderRadius: BorderRadius.all(Radius.circular(12)),
-                color: Colors.white,
-              ),
-              columns: [
-                DataColumn(label: Text('Nom du document')),
-                DataColumn(label: Text('Type')),
-                DataColumn(label: Text('Ajouté par')),
-                DataColumn(label: Text('Ajouté le')),
-                DataColumn(label: SizedBox()),
-              ],
-              rows: _buildList(context, files)
-              //  _buildList(context, snapshot.data.documents)
-              );
-        });
-  }
-
-  List<DataRow> _buildList(BuildContext context, List<MyFile> files) {
-    return files.map((file) => _buildListItem(context, file)).toList();
-  }
-
-  DataRow _buildListItem(BuildContext context, MyFile file) {
-    return DataRow(cells: [
-      DataCell(Text(file.name ?? '-')),
-      DataCell(Text(file.type)),
-      DataCell(Text(file.entity ?? '-')),
-      DataCell(Text(DateFormat('dd/MM/yyyy, HH:mm').format(file.dateAdded!))),
-      DataCell(TextButton.icon(
-          onPressed: (() => {
-                js.context.callMethod('open', [file.fileUrl])
-              }),
-          icon: Icon(Icons.download),
-          label: Text("Télécharger"))),
-    ]);
   }
 
   addFileDialog() {
@@ -390,7 +315,9 @@ class _MyHomePageState extends State<MyHomePage> {
 }
 
 class Filter extends StatefulWidget {
-  const Filter({super.key});
+  final Function(String) onFilterChanged;
+
+  const Filter({super.key, required this.onFilterChanged});
 
   @override
   State<Filter> createState() => _FilterState();
@@ -420,9 +347,162 @@ class _FilterState extends State<Filter> {
                 filterQuery = '';
               }
             });
+            widget.onFilterChanged(filterQuery);
           },
         );
       }).toList(),
+    );
+  }
+}
+
+class MyDataTable extends StatefulWidget {
+  final String? filterQuery;
+  final String? sortDateOrder;
+  const MyDataTable({super.key, this.filterQuery, this.sortDateOrder});
+
+  @override
+  State<MyDataTable> createState() => _MyDataTableState();
+}
+
+class _MyDataTableState extends State<MyDataTable> {
+  List<DocumentSnapshot> listSorted = [];
+  @override
+  Widget build(BuildContext context) {
+    Query filesStream;
+
+    if (widget.filterQuery == null || widget.filterQuery == '') {
+      filesStream = FirebaseFirestore.instance
+          .collection('files')
+          .where('name', isGreaterThanOrEqualTo: searchQuery.toLowerCase())
+          .where('name',
+              isLessThanOrEqualTo: "${searchQuery.toLowerCase()}\uf8ff");
+    } else {
+      filesStream = FirebaseFirestore.instance
+          .collection('files')
+          .where('type', isEqualTo: widget.filterQuery)
+          .where('name', isGreaterThanOrEqualTo: searchQuery.toLowerCase())
+          .where('name',
+              isLessThanOrEqualTo: "${searchQuery.toLowerCase()}\uf8ff");
+    }
+    return StreamBuilder<QuerySnapshot>(
+        stream: filesStream.snapshots(),
+        builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
+          if (snapshot.hasError) {
+            return Text('Something went wrong');
+          }
+
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return Text("Loading");
+          }
+          listSorted = snapshot.data!.docs.toList();
+
+          // Sort the list based on the sorting order
+          if (widget.sortDateOrder == "desc") {
+            listSorted
+                .sort((a, b) => b['dateAdded']!.compareTo(a['dateAdded']!));
+          } else {
+            listSorted
+                .sort((a, b) => a['dateAdded']!.compareTo(b['dateAdded']!));
+          }
+
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              SizedBox(height: 20),
+              Text('${snapshot.data!.docs.length} résultats'),
+              SizedBox(height: 20),
+              SingleChildScrollView(
+                  child: Material(
+                      elevation: 2,
+                      clipBehavior: Clip.hardEdge,
+                      borderRadius: BorderRadius.all(Radius.circular(12)),
+                      child: SizedBox(
+                        child: DataTable(
+                          decoration: BoxDecoration(
+                            border: Border.all(color: Colors.grey.shade200),
+                            borderRadius: BorderRadius.all(Radius.circular(12)),
+                            color: Colors.white,
+                          ),
+                          columns: [
+                            DataColumn(label: Text('Nom du document')),
+                            DataColumn(label: Text('Type')),
+                            DataColumn(label: Text('Ajouté par')),
+                            DataColumn(label: Text('Ajouté le')),
+                            DataColumn(label: SizedBox()),
+                          ],
+                          rows: listSorted.map((DocumentSnapshot document) {
+                            Map<String, dynamic> data =
+                                document.data()! as Map<String, dynamic>;
+                            return DataRow(cells: [
+                              DataCell(Text(data['name'])),
+                              DataCell(Text(data['type'])),
+                              DataCell(Text(data['entity'])),
+                              DataCell(Text(DateFormat('dd/MM/yyyy, HH:mm')
+                                  .format(data['dateAdded'].toDate()))),
+                              DataCell(Row(
+                                children: [
+                                  TextButton.icon(
+                                      onPressed: (() => {
+                                            js.context.callMethod(
+                                                'open', [data['fileUrl']])
+                                          }),
+                                      icon: Icon(Icons.download),
+                                      label: Text("Télécharger")),
+                                  SizedBox(width: 8),
+                                  TextButton.icon(
+                                      onPressed: (() => {
+                                        print(document.id),
+                                            confirmDeleteDialog(document.id),
+                                          }),
+                                      icon: Icon(Icons.close),
+                                      style: TextButton.styleFrom(
+                                          foregroundColor: Colors.red.shade600),
+                                      label: Text(
+                                        "Supprimer",
+                                      )),
+                                ],
+                              )),
+                            ]);
+                          }).toList(),
+                        ),
+                      ))),
+            ],
+          );
+        });
+  }
+
+  Future<void> confirmDeleteDialog(id) async {
+    return showDialog<void>(
+      context: context,
+      barrierDismissible: false, // user must tap button!
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Supprimer document'),
+          content: const SingleChildScrollView(
+            child: ListBody(
+              children: <Widget>[
+                Text('Êtes-vous sûr de vouloir supprimer ce document?'),
+              ],
+            ),
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('Annuler'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+            TextButton(
+              onPressed: () {
+               deleteFile(id: id);
+                Navigator.of(context).pop();
+              },
+              style: TextButton.styleFrom(foregroundColor: Colors.red.shade600),
+              child: const Text('Supprimer'),
+            ),
+          ],
+        );
+      },
     );
   }
 }
