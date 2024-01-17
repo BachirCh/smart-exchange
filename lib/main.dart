@@ -84,12 +84,12 @@ class _MyAppState extends State<MyApp> {
           ),
          
         ),
-        initialRoute:
-            FirebaseAuth.instance.currentUser == null ? '/' : '/home',
-        routes: {
-          '/': (context) => Login(),
-          '/home': (context) => MyHomePage(),
-        },
+        // initialRoute:
+        //     FirebaseAuth.instance.currentUser == null ? '/' : '/home',
+        // routes: {
+        //   '/': (context) => Login(),
+        //   '/home': (context) => MyHomePage(),
+        // },
         // home: Login(),
 
         locale: locale,
