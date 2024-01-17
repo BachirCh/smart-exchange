@@ -15,6 +15,20 @@ class Login extends StatelessWidget {
         if (!snapshot.hasData) {
           return SignInScreen(
             providers: [EmailAuthProvider()],
+            sideBuilder: (context, constraints) {
+              return Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  SvgPicture.asset(
+                    'assets/images/favicon.svg',
+                    height: 56,
+                  ),
+                  SizedBox(width: 12),
+                  Text('Smart Exchange',
+                      style: Theme.of(context).textTheme.displaySmall),
+                ],
+              );
+            },
             headerBuilder: (context, constraints, shrinkOffset) {
               return Padding(
                 padding: const EdgeInsets.all(20),
@@ -27,7 +41,8 @@ class Login extends StatelessWidget {
                         height: 32,
                       ),
                       SizedBox(width: 12),
-                      Text('Smart Exchange', style: Theme.of(context).textTheme.titleLarge),
+                      Text('Smart Exchange',
+                          style: Theme.of(context).textTheme.titleLarge),
                     ],
                   ),
                 ),
