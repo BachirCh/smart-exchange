@@ -1,6 +1,5 @@
 import 'dart:convert';
 
-import 'package:cloud_firestore/cloud_firestore.dart';
 
 MyFile fileFromJson(String str) =>
     MyFile.fromJson(json.decode(str));
@@ -9,6 +8,7 @@ String fileToJson(MyFile data) => json.encode(data.toJson());
 
 class MyFile {
   String? fileUrl;
+  String? entity;
   String type;
   String? name;
   String id;
@@ -17,6 +17,7 @@ class MyFile {
   MyFile({
     required this.id,
      this.fileUrl,
+     this.entity,
     required this.type,
     this.name,
      this.dateAdded,
@@ -28,6 +29,7 @@ class MyFile {
         type: json["type"],
         name: json["name"],
         fileUrl: json["fileUrl"],
+        entity: json["entity"],
         dateAdded: json["dateAdded"],
       );
 
@@ -35,6 +37,7 @@ class MyFile {
         "id": id,
         "type": type,
         "name": name,
+        "entity": entity,
         "fileUrl": fileUrl,
         "dateAdded": dateAdded,
       };

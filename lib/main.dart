@@ -3,7 +3,6 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_ui_localizations/firebase_ui_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:smart_exchange/firebase_options.dart';
 import 'package:smart_exchange/pages/homepage.dart';
 
 import 'pages/login.dart';

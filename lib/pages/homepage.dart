@@ -8,6 +8,8 @@ import '../components/my_file.dart';
 import '../components/dropdown.dart';
 import '../utils.dart';
 
+String filterQuery = "";
+
 class MyHomePage extends StatefulWidget {
   @override
   State<MyHomePage> createState() => _MyHomePageState();
@@ -17,13 +19,26 @@ class _MyHomePageState extends State<MyHomePage> {
   List<MyFile> files = [];
 
   fetchRecords({String? query}) async {
+    // if (query == null || query == "") {
+    //   FirebaseFirestore.instance
+    //       .collection('files')
+    //       .snapshots()
+    //       .listen((records) {
+    //     mapRecords(records);
+    //   });
+    // } else {
+
     FirebaseFirestore.instance
         .collection('files')
-        .where('name', isGreaterThanOrEqualTo: query ?? '')
+        .where('name', isGreaterThanOrEqualTo: query?.toLowerCase())
+        .where('name', isLessThanOrEqualTo: "${query?.toLowerCase()}\uf8ff")
+        // .where('type', arrayContainsAny: ["Reporting annuel", 'it'])
+        // .where('type', isEqualTo: filterQuery)
         .snapshots()
         .listen((records) {
       mapRecords(records);
     });
+    // }
   }
 
   mapRecords(QuerySnapshot<Map<String, dynamic>> records) async {
@@ -33,6 +48,7 @@ class _MyHomePageState extends State<MyHomePage> {
               type: file.data()['type'],
               name: file.data()['name'],
               fileUrl: file.data()['fileUrl'],
+              entity: file.data()['entity'],
               dateAdded: file.data()['dateAdded'].toDate(),
             ))
         .toList();
@@ -58,9 +74,16 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   final _formKey = GlobalKey<FormState>();
-  final userRole = getUserRole();
+  final userEntity = getUserEntity();
 
   final _fileV = ValueNotifier<PlatformFile?>(null);
+
+    List<String> filters = [
+      "Reporting annuel",
+      "Reporting mensuel",
+      "Plan de collecte",
+      "Evolution de tonnage",
+    ];
 
   void selectFile() async {
     PlatformFile? file = await pickFile();
@@ -69,6 +92,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
   @override
   Widget build(BuildContext context) {
+    String filter = "";
     String searchKey = "";
 
     return Scaffold(
@@ -120,20 +144,27 @@ class _MyHomePageState extends State<MyHomePage> {
                     color: Colors.white,
                   ),
                   child: SearchBar(
-                    shape: MaterialStateProperty.all(RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),),
-                    side: MaterialStatePropertyAll(BorderSide(color: Colors.grey.shade400, width: 1.0)),
+                    shape: MaterialStateProperty.all(
+                      RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                    side: MaterialStatePropertyAll(
+                        BorderSide(color: Colors.grey.shade400, width: 1.0)),
                     elevation: MaterialStateProperty.all<double>(0),
-                    leading: Icon(Icons.search, color: Colors.grey.shade400,),
-                    backgroundColor: MaterialStateProperty.all<Color>(Colors.white),
+                    leading: Icon(
+                      Icons.search,
+                      color: Colors.grey.shade400,
+                    ),
+                    backgroundColor:
+                        MaterialStateProperty.all<Color>(Colors.white),
                     // overlayColor: MaterialStateProperty.all<Color>(Colors.grey),
                     // surfaceTintColor:
                     //     MaterialStateProperty.all<Color>(Colors.grey),
-                        
+
                     hintText: "Recherche",
                     padding: const MaterialStatePropertyAll<EdgeInsets>(
-                        EdgeInsets.symmetric(horizontal: 16.0)),
+                        EdgeInsets.symmetric(horizontal: 16.0, vertical: 0.0)),
                     onTap: () {},
                     onChanged: (query) {
                       setState(() {
@@ -143,7 +174,6 @@ class _MyHomePageState extends State<MyHomePage> {
                     },
                   ),
                 ),
-                
                 ElevatedButton(
                     onPressed: () {
                       addFileDialog();
@@ -151,6 +181,8 @@ class _MyHomePageState extends State<MyHomePage> {
                     child: Text('Ajouter un document'))
               ],
             ),
+            SizedBox(height: 20),
+            Filter(),
             SizedBox(height: 20),
             // TextField(onChanged: (value) {
             //   setState(() {
@@ -163,11 +195,16 @@ class _MyHomePageState extends State<MyHomePage> {
             SizedBox(height: 20),
             Text('${files.length} résultats'),
             SizedBox(height: 20),
-            Material(
-                elevation: 2,
-                clipBehavior: Clip.hardEdge,
-                borderRadius: BorderRadius.all(Radius.circular(12)),
-                child: _buildBody(context, searchKey)),
+            SingleChildScrollView(
+              // scrollDirection: Axis.horizontal,
+              child: Material(
+                  elevation: 2,
+                  clipBehavior: Clip.hardEdge,
+                  borderRadius: BorderRadius.all(Radius.circular(12)),
+                  child: SizedBox(
+                      // width: MediaQuery.of(context).size.width - 80,
+                      child: _buildBody(context, searchKey))),
+            ),
           ],
         ),
       ),
@@ -194,6 +231,7 @@ class _MyHomePageState extends State<MyHomePage> {
               columns: [
                 DataColumn(label: Text('Nom du document')),
                 DataColumn(label: Text('Type')),
+                DataColumn(label: Text('Ajouté par')),
                 DataColumn(label: Text('Ajouté le')),
                 DataColumn(label: SizedBox()),
               ],
@@ -211,6 +249,7 @@ class _MyHomePageState extends State<MyHomePage> {
     return DataRow(cells: [
       DataCell(Text(file.name ?? '-')),
       DataCell(Text(file.type)),
+      DataCell(Text(file.entity ?? '-')),
       DataCell(Text(DateFormat('dd/MM/yyyy, HH:mm').format(file.dateAdded!))),
       DataCell(TextButton.icon(
           onPressed: (() => {
@@ -256,12 +295,7 @@ class _MyHomePageState extends State<MyHomePage> {
                           height: 16,
                         ),
                         DropdownMenuExample(
-                          list: [
-                            "Reporting annuel",
-                            "Reporting mensuel",
-                            "Plan de collecte",
-                            "Evolution de tonnage",
-                          ],
+                          list: filters,
                           controller: typeController,
                           label: "Type du document",
                         ),
@@ -323,6 +357,7 @@ class _MyHomePageState extends State<MyHomePage> {
                                         dateAdded:
                                             Timestamp.fromDate(dateAdded),
                                         type: type,
+                                        entity: userEntity,
                                         name: _fileV.value!.name,
                                         file: _fileV.value!);
                                     Navigator.pop(context);
@@ -351,5 +386,43 @@ class _MyHomePageState extends State<MyHomePage> {
             ),
           );
         });
+  }
+}
+
+class Filter extends StatefulWidget {
+  const Filter({super.key});
+
+  @override
+  State<Filter> createState() => _FilterState();
+}
+
+class _FilterState extends State<Filter> {
+  List<String> filters = [
+    "Reporting annuel",
+    "Reporting mensuel",
+    "Plan de collecte",
+    "Evolution de tonnage",
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    return Wrap(
+      spacing: 5.0,
+      children: filters.map((String val) {
+        return ChoiceChip(
+          label: Text(val),
+          selected: (filterQuery == val),
+          onSelected: (bool selected) {
+            setState(() {
+              if (selected) {
+                filterQuery = val;
+              } else {
+                filterQuery = '';
+              }
+            });
+          },
+        );
+      }).toList(),
+    );
   }
 }
